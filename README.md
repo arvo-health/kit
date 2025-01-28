@@ -2,8 +2,6 @@
 
 **Kit** is a foundational Go library designed to help developers build robust, consistent, and maintainable applications. It provides tools for structured logging, validation, error handling, and middleware integration for the **Fiber** web framework.
 
----
-
 ## Features
 
 - **Validation**: Simplify struct validation with a centralized system that generates localized, detailed error messages using the `validator` package.
@@ -11,8 +9,6 @@
 - **Fiber Integration**: Seamlessly integrate error handling and logging into your Fiber-based applications.
 - **Structured Logging**: Leverage JSON-based, context-rich logging with the `logger` package.
 - **Middleware**: Add reusable middleware, like request logging, tailored for Fiber applications.
-
----
 
 ## Package Overview
 
@@ -54,8 +50,6 @@ The validator package wraps the go-playground/validator library to:
 - Enable tag-based validation on structs.
 - Generate error messages in Portuguese.
 - Provide structured and simplified error responses.
-
----
 
 ## Usage Examples
 

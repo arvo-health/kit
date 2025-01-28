@@ -11,21 +11,10 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/arvo-health/kit"
 	"github.com/arvo-health/kit/responseerror"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-)
-
-// ContextKey defines custom keys for storing values in the Fiber context.
-type ContextKey string
-
-// Predefined context keys for accessing user and logger details.
-const (
-	Logger              ContextKey = "logger"
-	UserEmail           ContextKey = "middleware_user_email"
-	UserCompany         ContextKey = "middleware_user_company"
-	UserCompanyCategory ContextKey = "middleware_user_company_category"
-	UserPermissions     ContextKey = "middleware_user_permissions"
 )
 
 // ResponseErrorGetter is an interface for retrieving ResponseError objects based on errors.
@@ -50,7 +39,7 @@ func Middleware(logger *slog.Logger, errorRespGetter ResponseErrorGetter) fiber.
 		// Generate a unique request ID and attach it to the logger context.
 		requestID := uuid.NewString()
 		log := logger.With(slog.String("request_id", requestID))
-		c.Locals(Logger, log) // Store the logger in the Fiber context for later use.
+		c.Locals(kit.Logger, log) // Store the logger in the Fiber context for later use.
 
 		// Call the next middleware or route handler in the chain.
 		err := c.Next()
@@ -99,10 +88,10 @@ func logError(log *slog.Logger, c *fiber.Ctx, start time.Time, errorResp *respon
 // getUserGroup extracts user-related metadata from the Fiber context.
 // This includes information like email, company, and permissions.
 func getUserGroup(c *fiber.Ctx) slog.Attr {
-	userEmail := getContextValue(c, UserEmail, "unknown")
-	userCompany := getContextValue(c, UserCompany, "unknown")
-	userCompanyCategory := getContextValue(c, UserCompanyCategory, "unknown")
-	userPermissions := c.Context().Value(UserPermissions)
+	userEmail := getContextValue(c, kit.UserEmail, "unknown")
+	userCompany := getContextValue(c, kit.UserCompany, "unknown")
+	userCompanyCategory := getContextValue(c, kit.UserCompanyCategory, "unknown")
+	userPermissions := c.Context().Value(kit.UserPermissions)
 
 	return slog.Group("user",
 		slog.String("email", userEmail),
@@ -155,10 +144,14 @@ func getErrorGroup(errorResp *responseerror.ResponseError) slog.Attr {
 
 // getContextValue retrieves a value from the Fiber context by its key.
 // If the key is missing or the value is of a different type, it returns a default value.
-func getContextValue[T any](c *fiber.Ctx, key ContextKey, defaultValue T) T {
-	value, ok := c.Locals(key).(T)
-	if !ok {
-		return defaultValue
+func getContextValue[T any](c *fiber.Ctx, key kit.ContextKey, defaultValue T) T {
+	if value, ok := c.Locals(key).(T); ok {
+		return value
 	}
-	return value
+
+	if value, ok := c.Context().Value(key).(T); ok {
+		return value
+	}
+
+	return defaultValue
 }

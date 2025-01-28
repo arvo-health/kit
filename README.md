@@ -59,7 +59,7 @@ Use the `logger` package to create structured logs and integrate it with the `Mi
 
 ```go
 import (
-    "github.com/arvo-health/claim-mgmt/kit/logger"
+	"github.com/arvo-health/claim-mgmt/kit/logger"
     "github.com/gofiber/fiber/v2"
 )
 
@@ -98,19 +98,19 @@ import (
 )
 
 func main() {
-  var ErrExample = errors.New("example error")
-  registry := responseerror.NewRegistry().
-    Add(ErrExample, "ERR-V001", http.StatusUnprocessableEntity)
+    var ErrExample = errors.New("example error")
+    registry := responseerror.NewRegistry().
+        Add(ErrExample, "ERR-V001", http.StatusUnprocessableEntity)
 
-  app := fiber.New(fiber.Config{
-    ErrorHandler: responseerror.FiberErrorHandler(registry),
-  })
+    app := fiber.New(fiber.Config{
+        ErrorHandler: responseerror.FiberErrorHandler(registry),
+    })
 
-  app.Get("/", func (c *fiber.Ctx) error {
-    return ErrExample
-  })
+    app.Get("/", func (c *fiber.Ctx) error {
+        return ErrExample
+    })
 
-  app.Listen(":8080")
+    app.Listen(":8080")
 }
 ```
 
@@ -122,24 +122,22 @@ Simplify struct validation with the `validator` package, which provides localize
 import "github.com/arvo-health/kit/validator"
 
 func main() {
-  validator := validator.NewValidator()
+    validator := validator.NewValidator()
 
-  type Input struct {
-    Name  string `validate:"required" custom:"Nome"`
-    Age   int    `validate:"gte=18" custom:"Idade"`
-    Email string `validate:"required,email"`
-  }
+    type Input struct {
+        Name  string `validate:"required" custom:"Nome"`
+        Age   int    `validate:"gte=18" custom:"Idade"`
+        Email string `validate:"required,email"`
+    }
 
-  input := Input{}
-  err := validator.Validate(input)
-  if err != nil {
-    fmt.Println(err.Validations()) // Outputs field-level error details.
-  }
+    input := Input{}
+    err := validator.Validate(input)
+    if err != nil {
+        fmt.Println(err.Validations()) // Outputs field-level error details.
+    }
 }
 ```
 
----
-
-### Contributions
+## Contributions
 
 Contributions and feedbacks are welcome!

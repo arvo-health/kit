@@ -9,6 +9,8 @@
 - **Validation**: Simplify struct validation with a centralized system that generates localized, detailed error messages using the `validator` package.
 - **Error Handling**: Standardize application error responses with the `responseerror` package, enabling structured, reusable error handling.
 - **Fiber Integration**: Seamlessly integrate error handling and logging into your Fiber-based applications.
+- **Structured Logging**: Leverage JSON-based, context-rich logging with the `logger` package.
+- **Middleware**: Add reusable middleware, like request logging, tailored for Fiber applications.
 
 ---
 
@@ -16,6 +18,9 @@
 
 ```plaintext
 kit/
+├── logger/
+│   ├── logger.go                   # Structured logging utilities
+│   ├── middleware.go               # Logging middleware for Fiber
 ├── responseerror/
 │   ├── fiber_error_handler.go      # Fiber-compatible error handler
 │   ├── response_error.go           # Structured error responses
@@ -25,6 +30,14 @@ kit/
 ```
 
 ## Package Details
+
+### Logger
+
+The logger package provides:
+
+- JSON-based structured logging using the slog library.
+- Contextual attributes such as request IDs and user details for enhanced observability.
+- Middleware integration for automatic request and response logging in Fiber.
 
 ### ResponseError
 
@@ -46,7 +59,41 @@ The validator package wraps the go-playground/validator library to:
 
 ## Usage Examples
 
-### 1. Error Handling in Fiber
+### 1. Logging with Middleware
+
+Use the `logger` package to create structured logs and integrate it with the `Middleware` for Fiber.
+
+```go
+import (
+    "github.com/arvo-health/claim-mgmt/kit/logger"
+    "github.com/gofiber/fiber/v2"
+)
+
+func main() {
+    log := logger.New(slog.LevelInfo,
+        slog.Group("service",
+            slog.String("name", "service-name"), // retrieve from config
+            slog.String("env", "prod"), // env=[prod,dev,hml,test]
+            slog.String("version", "v1.0.0"),
+        ),
+    )
+
+    errorRegistry := responseerror.NewRegistry()
+    // Add error mappings to the registry
+
+    app := fiber.New()
+
+    app.Use(logger.Middleware(log, errorRegistry))
+
+    app.Get("/", func (c *fiber.Ctx) error {
+        return c.SendString("Hello, world!")
+    })
+
+    app.Listen(":8080")
+}
+```
+
+### 2. Error Handling in Fiber
 
 Use the `responseerror` package to centralize error handling in your Fiber app.
 
@@ -73,7 +120,7 @@ func main() {
 }
 ```
 
-### 2. Validation
+### 3. Validation
 
 Simplify struct validation with the `validator` package, which provides localized error messages.
 

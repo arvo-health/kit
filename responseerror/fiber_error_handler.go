@@ -14,10 +14,9 @@ func FiberErrorHandler(registry Registry) fiber.ErrorHandler {
 
 	// errorResponse represents the structure of the error payload sent to the client.
 	type errorResponse struct {
-		Code     string            `json:"code"`              // Unique error code.
-		Category string            `json:"category"`          // Error category (e.g., Validation, Business Logic).
-		Message  string            `json:"message"`           // Human-readable error message.
-		Details  map[string]string `json:"details,omitempty"` // Additional error details (optional).
+		Code    string            `json:"code"`              // Unique error code.
+		Message string            `json:"message"`           // Human-readable error message.
+		Details map[string]string `json:"details,omitempty"` // Additional error details (optional).
 	}
 
 	return func(c *fiber.Ctx, err error) error {
@@ -27,10 +26,9 @@ func FiberErrorHandler(registry Registry) fiber.ErrorHandler {
 		// Send a JSON response with the appropriate HTTP status code and error details.
 		return c.Status(responseError.statusCode).JSON(fiber.Map{
 			"error": errorResponse{
-				Code:     responseError.code,
-				Category: responseError.category,
-				Message:  responseError.message,
-				Details:  responseError.details,
+				Code:    responseError.code,
+				Message: responseError.message,
+				Details: responseError.details,
 			},
 		})
 	}

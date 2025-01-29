@@ -5,7 +5,7 @@ and to create reusable error handlers for frameworks like Fiber.
 
 Key Features:
 - Define and map domain-specific errors to HTTP responses using a registry.
-- Generate structured responses with detailed metadata (code, category, message).
+- Generate structured responses with detailed metadata (code, message, etc...).
 - Integrate with Fiber for seamless error handling and logging.
 */
 package responseerror
@@ -16,10 +16,9 @@ import (
 )
 
 // ResponseError represents a detailed error response with metadata.
-// It includes information such as code, category, HTTP status, and additional details.
+// It includes information such as code, HTTP status, and additional details.
 type ResponseError struct {
 	code       string            // Unique error code.
-	category   string            // Category of the error (e.g., Validation, Business Logic).
 	message    string            // Human-readable error message.
 	details    map[string]string // Additional details about the error (e.g., validation issues).
 	statusCode int               // HTTP status code associated with the error.
@@ -40,7 +39,6 @@ func New(err error, code string, status ...int) *ResponseError {
 
 	return &ResponseError{
 		code:       code,
-		category:   deriveCategoryFromCode(code),
 		message:    err.Error(),
 		statusCode: statusCode,
 		err:        err,
@@ -63,8 +61,8 @@ func (e *ResponseError) Details(details map[string]string) *ResponseError {
 
 // DetailParts extracts and returns the key components of the ResponseError.
 // Useful for logging or structured debugging.
-func (e *ResponseError) DetailParts() (code, category, message string, details []string) {
-	return e.code, e.category, e.message, e.detailValues()
+func (e *ResponseError) DetailParts() (code, message string, details []string) {
+	return e.code, e.message, e.detailValues()
 }
 
 // Status retrieves the HTTP status code associated with the error.
@@ -90,42 +88,4 @@ func (e *ResponseError) detailValues() []string {
 		parts = append(parts, m)
 	}
 	return parts
-}
-
-// deriveCategoryFromCode determines the error category based on the fifth character of the code.
-// Categories include:
-// - 'V': Validation
-// - 'B': Business Logic
-// - 'N': Not Found
-// - 'R': Bad Request
-// - 'P': Permission
-// - 'A': Authentication
-// - 'I': Internal Server
-// - 'E': External Dependency
-//
-// If the code is invalid or unrecognized, "Unknown" is returned.
-func deriveCategoryFromCode(code string) string {
-	categoryMap := map[byte]string{
-		'V': "validation",
-		'B': "business",
-		'N': "notfound",
-		'R': "badrequest",
-		'P': "permission",
-		'A': "authentication",
-		'I': "internal",
-		'E': "external",
-		// ...
-	}
-
-	const mincodelen = 5
-	if len(code) < mincodelen {
-		return "unknown" // Ensure valid code length.
-	}
-
-	// Check if the category letter exists in the map and return the category.
-	if category, exists := categoryMap[code[4]]; exists {
-		return category
-	}
-
-	return "unknown" // Default to unknown if the category is unrecognized.
 }

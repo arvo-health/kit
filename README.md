@@ -40,7 +40,6 @@ The logger package provides:
 The responseerror package standardizes error handling by:
 
 - Mapping domain-specific errors to structured HTTP responses.
-- Providing categories for errors (e.g., validation, authentication, internal server errors).
 - Supporting reusable error handlers for Fiber.
 
 ### Validator

@@ -131,12 +131,11 @@ func getResponseGroup(c *fiber.Ctx, end time.Time, status ...int) slog.Attr {
 	)
 }
 
-// getErrorGroup formats error details (code, category, message, etc.) for logging.
+// getErrorGroup formats error details (code, message, etc...) for logging.
 func getErrorGroup(errorResp *responseerror.ResponseError) slog.Attr {
-	code, category, message, details := errorResp.DetailParts()
+	code, message, details := errorResp.DetailParts()
 	return slog.Group("error",
 		slog.String("code", code),
-		slog.String("category", category),
 		slog.String("message", message),
 		slog.Any("details", details),
 	)

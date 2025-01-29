@@ -95,37 +95,3 @@ func sanitizeKeys(validationsErrs validator.ValidationErrorsTranslations) map[st
 	}
 	return m
 }
-
-// Error represents a validation-specific error with additional context.
-type Error struct {
-	message     string
-	validations map[string]string
-	err         error
-}
-
-// Validations returns a map of field-level validation errors.
-// Each entry includes the field name and its associated validation message.
-func (e *Error) Validations() map[string]string {
-	return e.validations
-}
-
-// Error returns a string representation of the validation error message.
-// If there is an underlying error, it will be included in the returned string.
-func (e *Error) Error() string {
-	if e.err != nil {
-		return e.err.Error()
-	}
-	return e.message
-}
-
-// Wrap associates an underlying error with the validation error.
-// This is useful for adding context or chaining errors.
-func (e *Error) Wrap(err error) *Error {
-	e.err = err
-	return e
-}
-
-// Unwrap exposes the underlying error for further inspection or processing.
-func (e *Error) Unwrap() error {
-	return e.err
-}

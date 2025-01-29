@@ -80,10 +80,10 @@ func (r Registry) Get(err error) *ResponseError {
 
 	// Return a default validation or internal error based on available details.
 	if len(details) > 0 {
-		resp := New(err, "ERR-V001", http.StatusUnprocessableEntity)
+		resp := New(err, "ERR-001", http.StatusUnprocessableEntity)
 		resp.details = details
 		return resp
 	}
 
-	return New(err, "ERR-I000") // Default internal server error.
+	return New(err, "ERR-000") // Default internal server error.
 }

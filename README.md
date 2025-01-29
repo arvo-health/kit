@@ -99,7 +99,7 @@ import (
 func main() {
     var ErrExample = errors.New("example error")
     registry := responseerror.NewRegistry().
-        Add(ErrExample, "ERR-V001", http.StatusUnprocessableEntity)
+        Add(ErrExample, "ERR-001", http.StatusUnprocessableEntity)
 
     app := fiber.New(fiber.Config{
         ErrorHandler: responseerror.FiberErrorHandler(registry),

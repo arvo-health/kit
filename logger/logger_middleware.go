@@ -103,12 +103,11 @@ func getUserGroup(c *fiber.Ctx) slog.Attr {
 }
 
 // getRequestGroup collects metadata about the incoming HTTP request.
-// This includes the method, path, route, and query parameters.
+// This includes the method, route, and query parameters.
 func getRequestGroup(c *fiber.Ctx, start time.Time) slog.Attr {
 	return slog.Group("request",
 		slog.Time("start_time", start),
 		slog.String("method", c.Method()),
-		slog.String("path", c.Path()),
 		slog.String("route", c.Route().Path),
 		slog.Any("params", c.AllParams()),
 		slog.Any("queries", c.Queries()),

@@ -118,22 +118,122 @@ func main() {
 Simplify struct validation with the `validator` package, which provides localized error messages.
 
 ```go
-import "github.com/arvo-health/kit/validator"
+import (
+    "errors"
+    "fmt"
+    "net/http"
+
+    "github.com/arvo-health/kit/responseerror"
+    "github.com/arvo-health/kit/validator"
+    "github.com/gofiber/fiber/v2"
+)
 
 func main() {
-    validator := validator.NewValidator()
 
-    type Input struct {
-        Name  string `validate:"required" custom:"Nome"`
-        Age   int    `validate:"gte=18" custom:"Idade"`
-        Email string `validate:"required,email"`
-    }
+    var ErrAnalysisValidation = errors.New("analysis validation failed")
 
-    input := Input{}
-    err := validator.Validate(input)
-    if err != nil {
-        fmt.Println(err.Validations()) // Outputs field-level error details.
+    // Create a new error registry and add the custom error.
+    registry := responseerror.NewRegistry().
+        Add(ErrAnalysisValidation, "ERR-032", http.StatusBadRequest)
+
+    // Create a custom error handler for Fiber.
+    errorHandler := responseerror.FiberErrorHandler(registry)
+
+    // Create a new Fiber app with the custom error handler.
+    app := fiber.New(fiber.Config{
+        ErrorHandler: errorHandler,
+    })
+
+    app.Get("/user", func(c *fiber.Ctx) error {
+        type User struct {
+            Name   string `validate:"required" custom:"Nome"`
+            Age    int    `validate:"gte=18" custom:"Idade"`
+            Gender string `validate:"required,oneof=M F" custom:"Gênero"`
+            Email  string `validate:"email"`
+        }
+
+        // Create a new validator instance.
+        validation, _ := validator.New()
+
+        user := User{Email: "invalid-email", Gender: "X"}
+
+        // Validate the user struct.
+        err := validation.Validate(user)
+        if err != nil {
+            return err
+        }
+
+        return c.SendStatus(http.StatusOK)
+    })
+
+    // Complex validation example.
+    app.Get("/analysis", func(c *fiber.Ctx) error {
+        type Analysis struct {
+            Status      string
+            Description string
+        }
+
+        analysis := Analysis{Status: "DENIED"}
+
+        // Create a new validator.Error instance.
+        validatorErr := validator.NewError("analysis validation failed")
+
+        // Do complex validation
+        if analysis.Status == "DENIED" && len(analysis.Description) < 5 {
+            validatorErr.AddValidation("Descrição", "Descrição deve ter pelo menos 5 caracteres")
+        }
+
+        // Do more complex validation
+        if true {
+            // Add more field-level validation error.
+            validatorErr.AddValidation("Status", "Status deve ser xpto")
+        }
+
+        // Check if the validator.Error has any validations.
+        if validatorErr.HasValidations() {
+            // Wrap the validator.Error with the custom analysis validation error.
+            return validatorErr.Wrap(ErrAnalysisValidation)
+        }
+
+        return c.SendStatus(http.StatusOK)
+    })
+
+    app.Listen(":8080")
+}
+
+```
+
+The response error will be:
+
+```json
+// GET /user
+// 422 Unprocessable Entity
+{
+  "error": {
+    "code": "ERR-001",
+    "message": "validation failed",
+    "details": {
+      "Email": "Email deve ser um endereço de e-mail válido",
+      "Gênero": "Gênero deve ser um de [M F]",
+      "Idade": "Idade deve ser 18 ou superior",
+      "Nome": "Nome é um campo obrigatório"
     }
+  }
+}
+```
+
+```json
+// GET /analysis
+// 400 Bad Request
+{
+  "error": {
+    "code": "ERR-032",
+    "message": "analysis validation failed",
+    "details": {
+      "Descrição": "Descrição deve ter pelo menos 5 caracteres",
+      "Status": "Status deve ser xpto"
+    }
+  }
 }
 ```
 

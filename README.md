@@ -4,7 +4,7 @@
 
 ## Features
 
-- **Validation**: Simplify struct validation with a centralized system that generates localized, detailed error messages using the `validator` package.
+- **Validation**: Simplify struct validation with a centralized system that generates localized (pt_br), detailed error messages using the `validator` package. It is a wrapper around the `go-playground/validator` library
 - **Error Handling**: Standardize application error responses with the `responseerror` package, enabling structured, reusable error handling.
 - **Fiber Integration**: Seamlessly integrate error handling and logging into your Fiber-based applications.
 - **Structured Logging**: Leverage JSON-based, context-rich logging with the `logger` package.
@@ -58,7 +58,7 @@ Use the `logger` package to create structured logs and integrate it with the `Mi
 
 ```go
 import (
-	"github.com/arvo-health/claim-mgmt/kit/logger"
+    "github.com/arvo-health/claim-mgmt/kit/logger"
     "github.com/gofiber/fiber/v2"
 )
 
@@ -86,36 +86,11 @@ func main() {
 }
 ```
 
-### 2. Error Handling in Fiber
+### 2. Validation with Error Handling in Fiber
 
-Use the `responseerror` package to centralize error handling in your Fiber app.
-
-```go
-import (
-    "github.com/arvo-health/kit/responseerror"
-    "github.com/gofiber/fiber/v2"
-)
-
-func main() {
-    var ErrExample = errors.New("example error")
-    registry := responseerror.NewRegistry().
-        Add(ErrExample, "ERR-001", http.StatusUnprocessableEntity)
-
-    app := fiber.New(fiber.Config{
-        ErrorHandler: responseerror.FiberErrorHandler(registry),
-    })
-
-    app.Get("/", func (c *fiber.Ctx) error {
-        return ErrExample
-    })
-
-    app.Listen(":8080")
-}
-```
-
-### 3. Validation
-
-Simplify struct validation with the `validator` package, which provides localized error messages.
+Use the `validator` package to simplify struct validation and error handling with localized error messages. 
+The `responseerror` package is used to centralize error handling.
+The example below demonstrates how to validate a struct (and complex validation) and return detailed error messages.
 
 ```go
 import (
@@ -236,6 +211,8 @@ The response error will be:
   }
 }
 ```
+
+The field `details` only exist when the error is a **validation** error.
 
 ## Contributions
 

@@ -37,9 +37,8 @@ func (r Registry) Add(err error, code string, status ...int) Registry {
 // Get retrieves the ResponseError associated with a given error.
 // If the error is not found, a default validation or internal error is returned.
 func (r Registry) Get(err error) *ResponseError {
-	var responseError *ResponseError
-
 	// Check if the error is already a ResponseError.
+	var responseError *ResponseError
 	if errors.As(err, &responseError) {
 		return responseError
 	}

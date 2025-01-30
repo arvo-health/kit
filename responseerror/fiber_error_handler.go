@@ -4,6 +4,8 @@
 package responseerror
 
 import (
+	"errors"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -20,8 +22,11 @@ func FiberErrorHandler(registry Registry) fiber.ErrorHandler {
 	}
 
 	return func(c *fiber.Ctx, err error) error {
-		// Retrieve the ResponseError from the Registry.
-		responseError := registry.Get(err)
+		var responseError *ResponseError
+		if !errors.As(err, &responseError) {
+			// Retrieve the ResponseError from the Registry.
+			responseError = registry.Get(err)
+		}
 
 		// Send a JSON response with the appropriate HTTP status code and error details.
 		return c.Status(responseError.statusCode).JSON(fiber.Map{

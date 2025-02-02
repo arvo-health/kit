@@ -7,6 +7,7 @@
 package logger
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -17,22 +18,15 @@ import (
 	"github.com/google/uuid"
 )
 
-// ResponseErrorGetter is an interface for retrieving ResponseError objects based on errors.
-// This interface is used to map application errors to structured response errors.
-type ResponseErrorGetter interface {
-	Get(err error) *responseerror.ResponseError
-}
-
 // Middleware creates a Fiber middleware for logging incoming requests and responses.
 // It logs details such as request ID, user info, error details, and response metrics.
 //
 // Parameters:
 // - `logger`: The structured logger instance to use for logging.
-// - `errorRespGetter`: An implementation of the `ResponseErrorGetter` interface.
 //
 // Returns:
 // - A Fiber middleware handler.
-func Middleware(logger *slog.Logger, errorRespGetter ResponseErrorGetter) fiber.Handler {
+func Middleware(logger *slog.Logger) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		start := time.Now().UTC() // Record the request start time.
 
@@ -44,10 +38,13 @@ func Middleware(logger *slog.Logger, errorRespGetter ResponseErrorGetter) fiber.
 		// Call the next middleware or route handler in the chain.
 		err := c.Next()
 		if err != nil {
-			// Retrieve and log the structured error details.
-			errorResp := errorRespGetter.Get(err)
-			logError(log, c, start, errorResp)
-			return errorResp
+			// Check if the error is a ResponseError, otherwise create a new generic UNKNOWN_ERROR 500 one.
+			var respError *responseerror.ResponseError
+			if !errors.As(err, &respError) {
+				respError = responseerror.New(err, "UNKNOWN_ERROR")
+			}
+			logError(log, c, start, respError)
+			return respError
 		}
 
 		// Log the request and response details if no error occurred.

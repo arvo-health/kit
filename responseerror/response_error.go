@@ -4,7 +4,6 @@ It provides utilities to map domain-specific errors to structured HTTP responses
 and to create reusable error handlers for frameworks like Fiber.
 
 Key Features:
-- Define and map domain-specific errors to HTTP responses using a registry.
 - Generate structured responses with detailed metadata (code, message, etc...).
 - Integrate with Fiber for seamless error handling and logging.
 */
@@ -32,6 +31,13 @@ func New(err error, code string, status ...int) *ResponseError {
 		return nil // Ensure valid inputs.
 	}
 
+	// Retrieve any validation details if applicable.
+	type validationsGetter interface{ Validations() map[string]string }
+	var details map[string]string
+	if v, ok := err.(validationsGetter); ok {
+		details = v.Validations()
+	}
+
 	statusCode := http.StatusInternalServerError // Default status code.
 	if len(status) > 0 {
 		statusCode = status[0]
@@ -40,6 +46,7 @@ func New(err error, code string, status ...int) *ResponseError {
 	return &ResponseError{
 		code:       code,
 		message:    err.Error(),
+		details:    details,
 		statusCode: statusCode,
 		err:        err,
 	}
@@ -52,9 +59,9 @@ func (e *ResponseError) StatusCode(status int) *ResponseError {
 	return e
 }
 
-// Details adds additional metadata to the error (e.g., validation failures).
+// AddDetails adds additional metadata to the error (e.g., validation failures).
 // Returns the same ResponseError for method chaining.
-func (e *ResponseError) Details(details map[string]string) *ResponseError {
+func (e *ResponseError) AddDetails(details map[string]string) *ResponseError {
 	e.details = details
 	return e
 }

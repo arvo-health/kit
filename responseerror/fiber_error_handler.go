@@ -14,26 +14,26 @@ import (
 // ResponseError for each error encountered.
 func FiberErrorHandler(registry Registry) fiber.ErrorHandler {
 
-	// errorResponse represents the structure of the error payload sent to the client.
-	type errorResponse struct {
+	// response represents the structure of the error payload sent to the client.
+	type response struct {
 		Code    string            `json:"code"`              // Unique error code.
 		Message string            `json:"message"`           // Human-readable error message.
 		Details map[string]string `json:"details,omitempty"` // Additional error details (optional).
 	}
 
 	return func(c *fiber.Ctx, err error) error {
-		var responseError *ResponseError
-		if !errors.As(err, &responseError) {
-			// Retrieve the ResponseError from the Registry.
-			responseError = registry.Get(err)
+		// Check if the error is a ResponseError, otherwise create a new generic UNKNOWN_ERROR 500 one.
+		var respError *ResponseError
+		if !errors.As(err, &respError) {
+			respError = New(err, "UNKNOWN_ERROR")
 		}
 
 		// Send a JSON response with the appropriate HTTP status code and error details.
-		return c.Status(responseError.statusCode).JSON(fiber.Map{
-			"error": errorResponse{
-				Code:    responseError.code,
-				Message: responseError.message,
-				Details: responseError.details,
+		return c.Status(respError.statusCode).JSON(fiber.Map{
+			"error": response{
+				Code:    respError.code,
+				Message: respError.message,
+				Details: respError.details,
 			},
 		})
 	}

@@ -9,10 +9,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// FiberErrorHandler creates a Fiber-compatible error handler that maps errors
-// to structured JSON responses. It uses a Registry to retrieve the appropriate
-// ResponseError for each error encountered.
-func FiberErrorHandler(registry Registry) fiber.ErrorHandler {
+// FiberErrorHandler creates a custom error handler for Fiber. It returns a Fiber.ErrorHandler
+// that maps *ResponseError errors to structured JSON responses with the appropriate HTTP status code.
+func FiberErrorHandler() fiber.ErrorHandler {
 
 	// response represents the structure of the error payload sent to the client.
 	type response struct {

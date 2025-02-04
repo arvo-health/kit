@@ -1,7 +1,7 @@
-// fiber_error_handler.go defines a custom error handler for the Fiber framework.
-// It maps domain-specific errors to structured JSON responses and logs them for observability.
+// Package kit provides foundational utilities for structured error handling in Go applications.
+// This file defines a custom error handler for Fiber.
 
-package responseerror
+package kit
 
 import (
 	"errors"
@@ -9,9 +9,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// FiberErrorHandler creates a custom error handler for Fiber. It returns a Fiber.ErrorHandler
-// that maps *ResponseError errors to structured JSON responses with the appropriate HTTP status code.
-func FiberErrorHandler() fiber.ErrorHandler {
+// ErrorHandler returns a Fiber-compatible error handler that maps errors
+// to structured JSON responses. If the error is not a *ResponseError,
+// it wraps it in a generic UNKNOWN_ERROR with HTTP 500 status.
+func ErrorHandler() fiber.ErrorHandler {
 
 	// response represents the structure of the error payload sent to the client.
 	type response struct {
@@ -24,7 +25,7 @@ func FiberErrorHandler() fiber.ErrorHandler {
 		// Check if the error is a ResponseError, otherwise create a new generic UNKNOWN_ERROR 500 one.
 		var respError *ResponseError
 		if !errors.As(err, &respError) {
-			respError = New(err, "UNKNOWN_ERROR")
+			respError = NewResponseError(err, "UNKNOWN_ERROR")
 		}
 
 		// Send a JSON response with the appropriate HTTP status code and error details.

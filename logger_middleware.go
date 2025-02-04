@@ -1,10 +1,7 @@
-// Package middleware provides reusable middleware components for Fiber applications.
-// This package includes a logging middleware for structured request and error logging.
-//
-// The middleware integrates with the `logger` package to log detailed information
-// about incoming requests, errors, and responses.
+// Package kit provides structured logging middleware for Fiber applications.
+// This file defines a middleware that logs detailed information about incoming requests, errors, and responses.
 
-package logger
+package kit
 
 import (
 	"errors"
@@ -12,13 +9,11 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/arvo-health/kit"
-	"github.com/arvo-health/kit/responseerror"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
-// Middleware creates a Fiber middleware for logging incoming requests and responses.
+// LoggerMiddleware creates a Fiber middleware for logging incoming requests and responses.
 // It logs details such as request ID, user info, error details, and response metrics.
 //
 // Parameters:
@@ -26,22 +21,22 @@ import (
 //
 // Returns:
 // - A Fiber middleware handler.
-func Middleware(logger *slog.Logger) fiber.Handler {
+func LoggerMiddleware(logger *slog.Logger) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		start := time.Now().UTC() // Record the request start time.
 
 		// Generate a unique request ID and attach it to the logger context.
 		requestID := uuid.NewString()
 		log := logger.With(slog.String("request_id", requestID))
-		c.Locals(kit.Logger, log) // Store the logger in the Fiber context for later use.
+		c.Locals(KeyLogger, log) // Store the logger in the Fiber context for later use.
 
 		// Call the next middleware or route handler in the chain.
 		err := c.Next()
 		if err != nil {
 			// Check if the error is a ResponseError, otherwise create a new generic UNKNOWN_ERROR 500 one.
-			var respError *responseerror.ResponseError
+			var respError *ResponseError
 			if !errors.As(err, &respError) {
-				respError = responseerror.New(err, "UNKNOWN_ERROR")
+				respError = NewResponseError(err, "UNKNOWN_ERROR")
 			}
 			logError(log, c, start, respError)
 			return respError
@@ -69,7 +64,7 @@ func logRequest(log *slog.Logger, c *fiber.Ctx, start time.Time) {
 
 // logError logs details about a request that resulted in an error.
 // It includes error-specific details, user context, and response metadata.
-func logError(log *slog.Logger, c *fiber.Ctx, start time.Time, errorResp *responseerror.ResponseError) {
+func logError(log *slog.Logger, c *fiber.Ctx, start time.Time, errorResp *ResponseError) {
 	end := time.Now().UTC() // Record the request end time.
 	duration := end.Sub(start).Milliseconds()
 
@@ -85,10 +80,10 @@ func logError(log *slog.Logger, c *fiber.Ctx, start time.Time, errorResp *respon
 // getUserGroup extracts user-related metadata from the Fiber context.
 // This includes information like email, company, and permissions.
 func getUserGroup(c *fiber.Ctx) slog.Attr {
-	userEmail := getContextValue(c, kit.UserEmail, "unknown")
-	userCompany := getContextValue(c, kit.UserCompany, "unknown")
-	userCompanyCategory := getContextValue(c, kit.UserCompanyCategory, "unknown")
-	userPermissions := c.Context().Value(kit.UserPermissions)
+	userEmail := getContextValue(c, KeyUserEmail, "unknown")
+	userCompany := getContextValue(c, KeyUserCompany, "unknown")
+	userCompanyCategory := getContextValue(c, KeyUserCompanyCategory, "unknown")
+	userPermissions := c.Context().Value(KeyUserPermissions)
 
 	return slog.Group("user",
 		slog.String("email", userEmail),
@@ -128,7 +123,7 @@ func getResponseGroup(c *fiber.Ctx, end time.Time, status ...int) slog.Attr {
 }
 
 // getErrorGroup formats error details (code, message, etc...) for logging.
-func getErrorGroup(errorResp *responseerror.ResponseError) slog.Attr {
+func getErrorGroup(errorResp *ResponseError) slog.Attr {
 	code, message, details := errorResp.DetailParts()
 	return slog.Group("error",
 		slog.String("code", code),
@@ -139,7 +134,7 @@ func getErrorGroup(errorResp *responseerror.ResponseError) slog.Attr {
 
 // getContextValue retrieves a value from the Fiber context by its key.
 // If the key is missing or the value is of a different type, it returns a default value.
-func getContextValue[T any](c *fiber.Ctx, key kit.ContextKey, defaultValue T) T {
+func getContextValue[T any](c *fiber.Ctx, key ContextKey, defaultValue T) T {
 	if value, ok := c.Locals(key).(T); ok {
 		return value
 	}

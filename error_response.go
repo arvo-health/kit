@@ -1,13 +1,7 @@
-/*
-Package responseerror centralizes error handling and response management.
-It provides utilities to map domain-specific errors to structured HTTP responses
-and to create reusable error handlers for frameworks like Fiber.
+// Package kit provides structured error handling utilities.
+// This file defines the ResponseError struct for standardized error responses.
 
-Key Features:
-- Generate structured responses with detailed metadata (code, message, etc...).
-- Integrate with Fiber for seamless error handling and logging.
-*/
-package responseerror
+package kit
 
 import (
 	"fmt"
@@ -15,7 +9,6 @@ import (
 )
 
 // ResponseError represents a detailed error response with metadata.
-// It includes information such as code, HTTP status, and additional details.
 type ResponseError struct {
 	code       string            // Unique error code.
 	message    string            // Human-readable error message.
@@ -24,9 +17,9 @@ type ResponseError struct {
 	err        error             // Underlying error, if any.
 }
 
-// New creates a new ResponseError based on an error, a unique code, and an optional HTTP status.
-// If no status is provided, the default is HTTP 500 (Internal Server Error).
-func New(err error, code string, status ...int) *ResponseError {
+// NewResponseError creates a new ResponseError based on an error, a unique code, and an optional HTTP status.
+// If no status is provided, it defaults to HTTP 500.
+func NewResponseError(err error, code string, status ...int) *ResponseError {
 	if err == nil || code == "" {
 		return nil // Ensure valid inputs.
 	}

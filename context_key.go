@@ -1,13 +1,16 @@
+// Package kit provides foundational utilities for building structured Go applications.
+// This file defines custom keys for storing values in the context.
+
 package kit
 
-// ContextKey defines custom keys for storing values in the context.
+// ContextKey represents a key used for storing values in the context.
 type ContextKey string
 
-// Predefined context keys
+// Predefined context keys for common use cases.
 const (
-	Logger              ContextKey = "kit.logger"
-	UserEmail           ContextKey = "kit.user_email"
-	UserCompany         ContextKey = "kit.user_company"
-	UserCompanyCategory ContextKey = "kit.user_company_category"
-	UserPermissions     ContextKey = "kit.user_permissions"
+	KeyLogger              ContextKey = "kit.logger"
+	KeyUserEmail           ContextKey = "kit.user_email"
+	KeyUserCompany         ContextKey = "kit.user_company"
+	KeyUserCompanyCategory ContextKey = "kit.user_company_category"
+	KeyUserPermissions     ContextKey = "kit.user_permissions"
 )

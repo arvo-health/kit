@@ -10,17 +10,17 @@ type Validation struct {
 	Validation string
 }
 
-// ValidationError represents a validation-specific error with additional context.
+// ValidatorError represents a validation-specific error with additional context.
 // It includes a message, field-level validations, and an optional underlying error.
-type ValidationError struct {
+type ValidatorError struct {
 	message     string
 	validations map[string]string
 	err         error
 	tmpField    string
 }
 
-// NewValidationError initializes a new validation error with the given message and optional validations.
-func NewValidationError(message string, validations ...Validation) *ValidationError {
+// NewValidatorError initializes a new validator error with the given message and optional validations.
+func NewValidatorError(message string, validations ...Validation) *ValidatorError {
 	vs := make(map[string]string, len(validations))
 
 	if len(validations) > 0 {
@@ -29,32 +29,32 @@ func NewValidationError(message string, validations ...Validation) *ValidationEr
 		}
 	}
 
-	return &ValidationError{
+	return &ValidatorError{
 		message:     message,
 		validations: vs,
 	}
 }
 
 // Field sets the field name for the next validation error. This is useful for chaining validations.
-func (e *ValidationError) Field(field string) *ValidationError {
+func (e *ValidatorError) Field(field string) *ValidatorError {
 	e.tmpField = field
 	return e
 }
 
 // Err sets the validation message for the current field. This is useful for chaining validations.
-func (e *ValidationError) Err(validation string) *ValidationError {
+func (e *ValidatorError) Err(validation string) *ValidatorError {
 	e.validations[e.tmpField] = validation
 	return e
 }
 
 // AddValidation adds a field-level validation error to the error instance.
-func (e *ValidationError) AddValidation(field, validation string) *ValidationError {
+func (e *ValidatorError) AddValidation(field, validation string) *ValidatorError {
 	e.validations[field] = validation
 	return e
 }
 
 // AddValidations adds multiple field-level validation errors to the error instance.
-func (e *ValidationError) AddValidations(validations ...Validation) *ValidationError {
+func (e *ValidatorError) AddValidations(validations ...Validation) *ValidatorError {
 	for _, v := range validations {
 		e.validations[v.Field] = v.Validation
 	}
@@ -62,19 +62,19 @@ func (e *ValidationError) AddValidations(validations ...Validation) *ValidationE
 }
 
 // HasValidations returns true if the error includes field-level validation errors.
-func (e *ValidationError) HasValidations() bool {
+func (e *ValidatorError) HasValidations() bool {
 	return len(e.validations) > 0
 }
 
 // Validations returns a map of field-level validation errors.
 // Each entry includes the field name and its associated validation message.
-func (e *ValidationError) Validations() map[string]string {
+func (e *ValidatorError) Validations() map[string]string {
 	return e.validations
 }
 
 // Error returns a string representation of the validation error message.
 // If there is an underlying error, it will be included in the returned string.
-func (e *ValidationError) Error() string {
+func (e *ValidatorError) Error() string {
 	if e.err == nil {
 		return e.message
 	}
@@ -83,12 +83,12 @@ func (e *ValidationError) Error() string {
 
 // Wrap associates an underlying error with the validation error.
 // This is useful for adding context or chaining errors.
-func (e *ValidationError) Wrap(err error) *ValidationError {
+func (e *ValidatorError) Wrap(err error) *ValidatorError {
 	e.err = err
 	return e
 }
 
 // Unwrap exposes the underlying error for further inspection or processing.
-func (e *ValidationError) Unwrap() error {
+func (e *ValidatorError) Unwrap() error {
 	return e.err
 }

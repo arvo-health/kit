@@ -168,7 +168,7 @@ func main() {
         analysis := Analysis{Status: "DENIED"}
 
         // Create a new validator.Error instance.
-        validatorErr := kit.NewValidationError("analysis validation failed")
+        validatorErr := kit.NewValidatorError("analysis validation failed")
 
         // perform the validation
         if analysis.Status == "DENIED" && len(analysis.Description) < 5 {

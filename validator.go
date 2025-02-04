@@ -54,7 +54,7 @@ func NewValidator() (*Validator, error) {
 
 // Validate validates a struct and returns an *Error if any validation rules are violated.
 // If validation is successful, it returns nil.
-func (v Validator) Validate(s interface{}) *ValidationError {
+func (v Validator) Validate(s interface{}) *ValidatorError {
 	err := v.validate.Struct(s)
 	if err == nil {
 		return nil // No validation errors.
@@ -64,14 +64,14 @@ func (v Validator) Validate(s interface{}) *ValidationError {
 	if errors.As(err, &validationErrors) {
 		// Translate and sanitize validation error messages for readability.
 		translations := validationErrors.Translate(v.translator)
-		return &ValidationError{
+		return &ValidatorError{
 			message:     "validation failed",
 			validations: sanitizeKeys(translations),
 		}
 	}
 
 	// Return a generic error message if validation errors could not be translated.
-	return &ValidationError{
+	return &ValidatorError{
 		message: "Unknown validation error",
 	}
 }

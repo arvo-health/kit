@@ -62,6 +62,7 @@ Use the `logger` package to create structured logs and integrate it with the `Mi
 import (
     "github.com/arvo-health/kit/logger"
     "github.com/gofiber/fiber/v2"
+    "log/slog"
 )
 
 func main() {

@@ -1,20 +1,14 @@
-/*
-Package logger provides utilities for structured and context-aware logging in Go applications.
-It uses the `slog` library to output JSON-formatted logs with additional contextual information.
+// Package kit provides structured logging utilities for Go applications.
+// This file defines a logger using `slog` for JSON-based structured logs.
 
-Key Features:
-- JSON-based structured logging.
-- Support for adding contextual information such as service name, version, and request-specific details.
-- Configurable log levels to control verbosity.
-*/
-package logger
+package kit
 
 import (
 	"log/slog"
 	"os"
 )
 
-// New creates a new instance of a JSON-based `slog.Logger` with customizable attributes.
+// NewLogger creates a new instance of a JSON-based `slog.Logger` with customizable attributes.
 // It allows adding additional context (e.g., service name, version) to logs.
 //
 // Parameters:
@@ -23,7 +17,7 @@ import (
 //
 // Returns:
 // - A pointer to the configured `slog.Logger` instance.
-func New(level slog.Level, opts ...slog.Attr) *slog.Logger {
+func NewLogger(level slog.Level, opts ...slog.Attr) *slog.Logger {
 	// Configure a handler for JSON-formatted logs with source code information.
 	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level:     level,

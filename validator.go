@@ -1,16 +1,7 @@
-/*
-Package validator provides utilities for struct validation in Go.
-It wraps the `go-playground/validator` library, adding support for
-error messages translated into Portuguese and offering structured
-and standardized validation error handling.
+// Package kit provides struct validation utilities using `go-playground/validator`.
+// This file defines a wrapper around the validator library with localized (pt_br) error messages.
 
-Key Features:
-- Simplified struct validation using tags.
-- Customizable tag names for error messages with `custom` tag.
-- Error messages with Portuguese translations.
-- Structured validation errors with easily readable error keys.
-*/
-package validator
+package kit
 
 import (
 	"errors"
@@ -31,9 +22,9 @@ type Validator struct {
 	translator ut.Translator       // Translator for localized error messages.
 }
 
-// New initializes a new Validator instance with Portuguese translations.
+// NewValidator initializes a new Validator instance with Portuguese translations.
 // It configures the validator with custom tag name parsing for error messages.
-func New() (*Validator, error) {
+func NewValidator() (*Validator, error) {
 	ptBR := pt_BR.New()                    // Load the Brazilian Portuguese locale.
 	uni := ut.New(ptBR)                    // Create a Universal Translator.
 	trans, _ := uni.GetTranslator("pt_br") // Get the Portuguese translator.
@@ -63,7 +54,7 @@ func New() (*Validator, error) {
 
 // Validate validates a struct and returns an *Error if any validation rules are violated.
 // If validation is successful, it returns nil.
-func (v Validator) Validate(s interface{}) *Error {
+func (v Validator) Validate(s interface{}) *ValidatorError {
 	err := v.validate.Struct(s)
 	if err == nil {
 		return nil // No validation errors.
@@ -73,14 +64,14 @@ func (v Validator) Validate(s interface{}) *Error {
 	if errors.As(err, &validationErrors) {
 		// Translate and sanitize validation error messages for readability.
 		translations := validationErrors.Translate(v.translator)
-		return &Error{
+		return &ValidatorError{
 			message:     "validation failed",
 			validations: sanitizeKeys(translations),
 		}
 	}
 
 	// Return a generic error message if validation errors could not be translated.
-	return &Error{
+	return &ValidatorError{
 		message: "Unknown validation error",
 	}
 }

@@ -122,6 +122,7 @@ func main() {
     app.Listen(":8080")
 }
 ```
+See the official go-playground/validator [documentation](https://pkg.go.dev/github.com/go-playground/validator/v10#section-readme) for more tag validation options.
 
 **Expected Response for Invalid Data:**
 

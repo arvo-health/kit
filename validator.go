@@ -29,7 +29,7 @@ func NewValidator() (*Validator, error) {
 	uni := ut.New(ptBR)                    // Create a Universal Translator.
 	trans, _ := uni.GetTranslator("pt_br") // Get the Portuguese translator.
 
-	validate := validator.New() // Initialize the validator instance.
+	validate := validator.New(validator.WithRequiredStructEnabled()) // Initialize the validator instance.
 
 	// Customize tag names for error messages by extracting the `custom` tag
 	// or falling back to the field name.

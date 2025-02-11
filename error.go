@@ -15,13 +15,13 @@ import (
 var ErrBadInput = NewErrorf("BAD_INPUT", "bad input")
 
 // ErrRequestValidation represents an error indicating that a request validation has failed.
-var ErrRequestValidation = NewErrorf("REQUEST_VALIDATION", "request validation failed")
+var ErrRequestValidation = NewErrorf("REQUEST_VALIDATION", "falha na validação da requisição")
 
 // ErrActionDenied represents an error indicating that the requested action is not permitted.
-var ErrActionDenied = NewErrorf("ACTION_DENIED", "action denied")
+var ErrActionDenied = NewErrorf("ACTION_DENIED", "usuário não tem permissão para executar esta ação")
 
 // ErrUnauthorized represents an error indicating an unauthorized access attempt.
-var ErrUnauthorized = NewErrorf("UNAUTHORIZED", "unauthorized")
+var ErrUnauthorized = NewErrorf("UNAUTHORIZED", "não autorizado")
 
 // Error represents a structured error with a code, message format, details, cause, and additional format arguments.
 type Error struct {

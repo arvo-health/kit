@@ -1,91 +1,60 @@
-// Package kit provides structured error handling utilities.
-// This file defines the ResponseError struct for standardized error responses.
+// Package kit provides utilities for structured error handling and API response formatting.
+// This file defines the ResponseError type and functions for creating and managing API-friendly error representations.
 
 package kit
 
 import (
-	"fmt"
-	"net/http"
+	"errors"
 )
 
-// ResponseError represents a detailed error response with metadata.
+// ResponseError represents a structured error used for API responses, including status, code, message, cause, and details.
 type ResponseError struct {
-	code       string            // Unique error code.
-	message    string            // Human-readable error message.
-	details    map[string]string // Additional details about the error (e.g., validation issues).
-	statusCode int               // HTTP status code associated with the error.
-	err        error             // Underlying error, if any.
+	Code    string   `json:"code"`
+	Status  int      `json:"status_code"`
+	Message string   `json:"message"`
+	Cause   string   `json:"cause,omitempty"`
+	Details []string `json:"details,omitempty"`
+	err     error
 }
 
-// NewResponseError creates a new ResponseError based on an error, a unique code, and an optional HTTP status.
-// If no status is provided, it defaults to HTTP 500.
-func NewResponseError(err error, code string, status ...int) *ResponseError {
-	if err == nil || code == "" {
-		return nil // Ensure valid inputs.
+// NewResponseError generates a ResponseError from the provided HTTP status and error, mapping to structured error types.
+func NewResponseError(status int, err error) *ResponseError {
+	// check if the error is a *Error or *ValidationErrors type and map accordingly
+	// if not, return a generic UNKNOWN error with the original error as the cause
+	var e *Error
+	if errors.As(err, &e) {
+		e.Cause()
+		return &ResponseError{
+			Status:  status,
+			Code:    e.code,
+			Message: e.String(),
+			Details: e.details,
+			Cause:   e.Cause(),
+			err:     err,
+		}
 	}
 
-	// Retrieve any validation details if applicable.
-	type validationsGetter interface{ Validations() map[string]string }
-	var details map[string]string
-	if v, ok := err.(validationsGetter); ok {
-		details = v.Validations()
-	}
-
-	statusCode := http.StatusInternalServerError // Default status code.
-	if len(status) > 0 {
-		statusCode = status[0]
+	var errs *ValidationErrors
+	if errors.As(err, &errs) {
+		return &ResponseError{
+			Status:  status,
+			Code:    "VALIDATION",
+			Message: errs.Error(),
+			Details: errs.Validations(),
+			err:     err,
+		}
 	}
 
 	return &ResponseError{
-		code:       code,
-		message:    err.Error(),
-		details:    details,
-		statusCode: statusCode,
-		err:        err,
+		Status:  status,
+		Code:    "UNKNOWN",
+		Message: "unknown error",
+		Cause:   err.Error(),
+		err:     err,
 	}
 }
 
-// StatusCode sets a custom HTTP status code for the error.
-// Returns the same ResponseError for method chaining.
-func (e *ResponseError) StatusCode(status int) *ResponseError {
-	e.statusCode = status
-	return e
-}
-
-// AddDetails adds additional metadata to the error (e.g., validation failures).
-// Returns the same ResponseError for method chaining.
-func (e *ResponseError) AddDetails(details map[string]string) *ResponseError {
-	e.details = details
-	return e
-}
-
-// DetailParts extracts and returns the key components of the ResponseError.
-// Useful for logging or structured debugging.
-func (e *ResponseError) DetailParts() (code, message string, details []string) {
-	return e.code, e.message, e.detailValues()
-}
-
-// Status retrieves the HTTP status code associated with the error.
-func (e *ResponseError) Status() int {
-	return e.statusCode
-}
-
-// Error implements the error interface, returning a string representation of the error.
-// This is primarily used for logging and debugging.
+// Error returns the formatted error message, optionally including the cause's message if a cause is present.
 func (e *ResponseError) Error() string {
-	return fmt.Sprintf("[%s] %s", e.code, e.message)
-}
-
-// Unwrap exposes the underlying error, if any, for further inspection.
-func (e *ResponseError) Unwrap() error {
-	return e.err
-}
-
-// detailValues returns a slice of the detailed error information.
-func (e *ResponseError) detailValues() []string {
-	parts := make([]string, 0, len(e.details))
-	for _, m := range e.details {
-		parts = append(parts, m)
-	}
-	return parts
+	return e.Message
 }

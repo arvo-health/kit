@@ -18,7 +18,7 @@ var ErrBadInput = NewErrorf("BAD_INPUT", "bad input")
 var ErrRequestValidation = NewErrorf("REQUEST_VALIDATION", "request validation failed")
 
 // ErrActionDenied represents an error indicating that the requested action is not permitted.
-var ErrActionDenied = NewErrorf("ACTION_DENIED", "action denied")
+var ErrActionDenied = NewErrorf("ACTION_DENIED", "user is not allowed to perform this action")
 
 // ErrUnauthorized represents an error indicating an unauthorized access attempt.
 var ErrUnauthorized = NewErrorf("UNAUTHORIZED", "unauthorized")

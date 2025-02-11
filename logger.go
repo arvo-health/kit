@@ -1,5 +1,6 @@
 // Package kit provides structured logging utilities for Go applications.
-// This file defines a logger using `slog` for JSON-based structured logs.
+// This file defines a logger utility using `slog` for JSON-based structured logs,
+// allowing customization and attaching additional context for better debugging and monitoring.
 
 package kit
 
@@ -24,10 +25,8 @@ func NewLogger(level slog.Level, opts ...slog.Attr) *slog.Logger {
 		AddSource: true,
 	})
 
-	// Create the logger with the configured handler.
+	// Create the logger with the configured handler and attach additional context (if provided) to the logger.
 	logger := slog.New(handler)
-
-	// Attach additional context (if provided) to the logger.
 	for _, opt := range opts {
 		logger = logger.With(opt)
 	}

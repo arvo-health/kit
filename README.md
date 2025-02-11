@@ -1,63 +1,71 @@
-# Kit
+Package kit is a foundational Go library designed to help developers build consistent, and maintainable
+applications. It provides utilities for structured logging, validation, error handling, request parsing,
+and middleware integration with the Fiber web framework.
 
-**Kit** is a foundational Go library designed to help developers build consistent, and maintainable applications.  
-It provides utilities for structured logging, validation, error handling, and middleware integration for the **Fiber** web framework.
+# Key Features:
 
-## Features
+  - **Validation**: Provides a wrapper around `go-playground/validator`, supporting custom validation tags
+    and localized error messages in Portuguese.
 
-- **Validation**: Simplifies struct validation with a centralized system that generates detailed, localized (pt_BR) error messages.  
-  It is a wrapper around `go-playground/validator` with support for custom validation tags.
-- **Error Handling**: Standardizes application error responses with `ResponseError`, enabling structured, reusable error handling.
-- **Fiber Integration**: Provides middleware like `LoggerMiddleware` for structured request logging and `ErrorHandler` for error processing.
-- **Structured Logging**: Uses `slog` for JSON-based, context-rich logging with support for metadata such as request IDs, user details, and response status.
-- **Middleware**: Includes reusable middleware, such as request logging for Fiber applications.
+  - **Error Handling**: Standardizes application errors with structured responses through `ResponseError`.
+    Includes a Fiber-compatible error handler (`ErrorHandler`) for seamless error processing.
+    Provides structured error types (`Error` and `ValidationErrors`) for better debugging.
 
+  - **Logging**: Leverages `slog` for structured, JSON-based logging with support for contextual attributes
+    like request ID, user details, and response status. Includes `LoggerMiddleware` for request-based logging.
 
+  - **Middleware**: Provides reusable middleware for Fiber, including `LoggerMiddleware` for logging request
+    and response data with contextual information.
 
-## Package Overview
+  - **Request Handling**: Simplifies HTTP request parsing and validation through `ParseRequestBody`,
+    reducing boilerplate code for handling and validating request payloads.
+
+  - **Testing Utilities**: Provides helper functions and types (`Map`, `Request`, `Response`) to facilitate
+    the creation and testing of HTTP handlers.
+
+  - **Context Management**: Defines `ContextKey` constants to facilitate storing and retrieving metadata
+    (e.g., user info, logging context).
+
+# Package Structure:
 
 ```plaintext
 kit/
 ├── context_key.go         # Defines context keys for storing metadata
+├── error.go               # Custom error types with error chaining support
 ├── error_handler.go       # Custom Fiber error handler for structured error responses
 ├── error_response.go      # Standardized error response structure
 ├── logger.go              # Structured logging utilities using slog
 ├── logger_middleware.go   # Middleware for request logging in Fiber
 ├── validator.go           # Wrapper for struct validation with localized messages
 ├── validator_error.go     # Custom validation error structure
+├── utilshandler.go        # Utility functions for handling HTTP requests and validation
+├── utilstest.go           # Testing utilities for HTTP requests and responses
 ├── doc.go                 # General package documentation
 ```
 
-## Installation
+# Basic Usage Examples
 
-To install the package, run:
+## Error Handling, Custom Errors and Logging with Middleware
 
-```sh
-go get github.com/arvo-health/kit
-```
-
-Then, import it in your Go application:
-    
-```go
-import "github.com/arvo-health/kit"
-```
-
-## Usage Examples
-
-### 1. Logging with Middleware
-
-Use the `LoggerMiddleware` to log structured request and response data.
+Use the `kit.LoggerMiddleware(logger)` to log structured request and response lod data. Use `kitNewErrorf()` to domain
+custom errors and `kit.NewResponseError()` along with `kit.ErrorHandler()` for centralized error handling and consistent response body.
 
 ```go
 package main
 
 import (
+    "log/slog"
+    "net/http"
+
     "github.com/arvo-health/kit"
     "github.com/gofiber/fiber/v2"
-    "log/slog"
 )
 
+// kit custom Error error
+var ErrUserNotFound = kit.NewErrorf("USER_NOT_FOUND", "user with ID %s not found")
+
 func main() {
+    // kit logger example
     logger := kit.NewLogger(slog.LevelInfo,
         slog.Group("service",
             slog.String("name", "my-service"),
@@ -66,126 +74,144 @@ func main() {
         ),
     )
 
-    app := fiber.New()
+    app := fiber.New(fiber.Config{
+        // kit error handler example
+        ErrorHandler: kit.ErrorHandler(),
+    })
+    // kit logger middleware example
     app.Use(kit.LoggerMiddleware(logger))
 
     app.Get("/", func(c *fiber.Ctx) error {
         return c.SendString("Hello, world!")
-    })
+    }).Name("Hello world")
 
-    app.Listen(":8080")
-}
-
-```
-
-### 2. Validation with Error Handling
-
-Use the kit.NewValidator() for struct validation, along with ErrorHandler() for centralized error handling.
-
-```go
-package main
-
-import (
-    "errors"
-    "github.com/arvo-health/kit"
-    "github.com/gofiber/fiber/v2"
-    "net/http"
-)
-
-func main() {
-    app := fiber.New(fiber.Config{
-        ErrorHandler: kit.ErrorHandler(),
-    })
-
-    app.Post("/validate", func(c *fiber.Ctx) error {
-        type User struct {
-            Name   string `validate:"required" custom:"Nome"`
-            Email  string `validate:"required,email" custom:"E-mail"`
-            Age    int    `validate:"gte=18" custom:"Idade"`
-            Gender string `validate:"required,oneof=M F" custom:"Gênero"`
-        }
-
-        validator, _ := kit.NewValidator()
-        
-        user := User{Email: "invalid-email"}
-        if err := c.BodyParser(&user); err != nil {
-            return kit.NewResponseError(err, "INVALID_REQUEST", http.StatusBadRequest)
-        }
-
-        if err := validator.Validate(user); err != nil {
-            return kit.NewResponseError(err, "USER_VALIDATION", http.StatusUnprocessableEntity)
-        }
-
-        return c.SendStatus(http.StatusOK)
-    })
+    app.Get("/users/:id", func(c *fiber.Ctx) error {
+        id := c.Params("id")
+        // kit response error with status 400
+        return kit.NewResponseError(http.StatusNotFound,
+            // kit custom Error error adding args
+            ErrUserNotFound.WithArgs(id))
+    }).Name("Get user by ID")
 
     app.Listen(":8080")
 }
 ```
-See the official go-playground/validator [documentation](https://pkg.go.dev/github.com/go-playground/validator/v10#section-readme) for more tag validation options.
+### Expected error responses and logs
 
-**Expected Response for Invalid Data:**
+#### Success log
+
+
+```shell
+  curl -X GET localhost:8080
+```
 
 ```json
-// POST /validate
-// 422 Unprocessable Entity
+// log: request completed without error
+{"time":"2025-02-03T18:12:36.089856-03:00","level":"INFO","msg":"Hello world: request completed","service":{"name":"my-service","env":"prod","version":"v1.0.0"},"request_id":"7cdbae25-9b3c-4d43-a2f7-9e94f51cafef","duration_ms":0,"user":{"email":"unknown","company":"unknown","company_category":"unknown","permissions":"<nil>"},"request":{"start_time":"2025-02-10T21:12:36.089776Z","method":"GET","route":"/","params":{},"queries":{}},"response":{"end_time":"2025-02-10T21:12:36.089825Z","status":200}}
+```
+
+#### Error response and log
+
+```shell
+  curl -X GET localhost:8080/users/203
+```
+
+```json
+// response: 404 Not Found
 {
   "error": {
-    "code": "USER_VALIDATION",
-    "message": "validation failed: user validation failed",
-    "details": {
-      "Email": "Email deve ser um endereço de e-mail válido",
-      "Gênero": "Gênero deve ser um de [M F]",
-      "Idade": "Idade deve ser 18 ou superior",
-      "Nome": "Nome é um campo obrigatório"
-    }
+    "code": "USER_NOT_FOUND",
+    "status_code": 404,
+    "message": "user with ID 203 not found"
   }
 }
 ```
 
-The example below demonstrates how to perform **complex** validation.
+```json
+// log: request completed with error, has error group
+{"time":"2025-02-03T16:29:12.709121-03:00","level":"ERROR","msg":"Get user by ID: user with ID 203 not found","service":{"name":"my-service","env":"prod","version":"v1.0.0"},"request_id":"98f7d221-0a8a-4fc5-826f-fb7840d408f5","duration_ms":0,"error":{"code":"USER_NOT_FOUND","message":"user with ID 203 not found","cause":"","details":null},"user":{"email":"unknown","company":"unknown","company_category":"unknown","permissions":"<nil>"},"request":{"start_time":"2025-02-10T19:29:12.708577Z","method":"GET","route":"/user/:id","params":{"id":"203"},"queries":{}},"response":{"end_time":"2025-02-10T19:29:12.708673Z","status":404}}
+```
+
+## Validation and ValidationErrors with Error Handling
+
+Use the  and `kit.NewValidator()` and `kit.NewValidationErrors()` for struct and business rule validation.
+See the official [go-playground/validator](https://pkg.go.dev/github.com/go-playground/validator/v10#section-readme)
+documentation for more tag validation options.
 
 ```go
 package main
 
 import (
-    "errors"
+    "net/http"
+    "strings"
+
     "github.com/arvo-health/kit"
     "github.com/gofiber/fiber/v2"
-    "net/http"
 )
+
+// kit custom Error error
+var ErrInsertUserValidation = kit.NewErrorf("USER_VALIDATION", "insert user validation failed")
+var ErrInsertUserBusinessValidation = kit.NewErrorf("USER_BUSINESS_VALIDATION", "insert user bisiness validation failed")
 
 func main() {
     app := fiber.New(fiber.Config{
+        // kit error handler example
         ErrorHandler: kit.ErrorHandler(),
     })
 
-    app.Post("/validate", func(c *fiber.Ctx) error {
-        type Analysis struct {
-            Status      string
-            Description string
+    app.Post("/users", func(c *fiber.Ctx) error {
+
+        type request struct {
+            Name  string `validate:"required" custom:"Nome"`
+            Email string `validate:"required" custom:"E-mail"`
         }
 
-        analysis := Analysis{Status: "DENIED"}
+        // kit validator creation
+        validator := kit.NewValidator()
 
-        // Create a new validator.Error instance.
-        validatorErr := kit.NewValidatorError("analysis validation failed")
-
-        // perform the validation
-        if analysis.Status == "DENIED" && len(analysis.Description) < 5 {
-            validatorErr.AddValidation("Descrição", "Descrição deve ter pelo menos 5 caracteres")
+        var req request
+        // kit request body parsing and validation
+        if err := kit.ParseRequestBody(&req, c, validator); err != nil {
+            // it returns BadRequest kit.ResponseError (ErrBadInput or ErrRequestValidation)
+            return err
         }
 
-        // perform more complex validation
-        if true {
-            // Add more field-err validation error.
-            validatorErr.AddValidation("Status", "Status deve ser OK")
+        type User struct {
+            Name  string `validate:"gte=5" custom:"Nome"`
+            Email string `validate:"email" custom:"E-mail"`
         }
 
-        // Check if the validatorErr has any validations.
-        if validatorErr.HasValidations() {
-            // Return a new *ResponseError wrapping it
-            return kit.NewResponseError(validatorErr, "ANALYSIS_VALIDATION", http.StatusUnprocessableEntity)
+        user := User{
+            Name:  req.Name,
+            Email: req.Email,
+        }
+
+        // kit struct validation and pt_BR translation
+        if err := validator.StructTranslated(user); err != nil {
+            // update de domain kit.Errorf custom error wrapping the error cause
+            err = ErrInsertUserValidation.WrapCause(err)
+            // then return UnprocessableEntity kit.ResponseError with the validations details
+            return kit.NewResponseError(http.StatusUnprocessableEntity, err)
+        }
+
+        // create a custom kit.NewValidationErrors to perform some "complex" business validations
+        validationErr := kit.NewValidationErrors("validation error")
+
+        // perform some "complex" business validations
+        if len(user.Name) < 10 && !strings.HasPrefix(user.Email, strings.ToLower(user.Name)) {
+            // add a validation detail if the condition is not met
+            validationErr.Add("E-mail deve ser igual ao Nome")
+        }
+        if !strings.HasSuffix(user.Email, "@arvo.com.br") {
+            validationErr.Add("E-mail deve ter o domínio @arvo.com.br")
+        }
+
+        // then through the `.ErrorOrNil()` method, the error (if any) can be returned or checked and handled
+        if err := validationErr.ErrorOrNil(); err != nil {
+            // update de domain kit.Errorf custom error wrapping the error cause
+            err = ErrInsertUserBusinessValidation.WrapCause(err)
+            // then return UnprocessableEntity kit.ResponseError with the validations details
+            return kit.NewResponseError(http.StatusUnprocessableEntity, err)
         }
 
         return c.SendStatus(http.StatusOK)
@@ -194,67 +220,116 @@ func main() {
     app.Listen(":8080")
 }
 ```
-**Expected Response for validation:**
+
+### Expected error responses
+
+#### Malformed JSON
+
+```shell
+  curl -X POST localhost:8080/users \
+  -H "Content-Type: application/json" \
+  -d '{"malformed": json,'
+```
 
 ```json
-// POST /validate
-// 400 Unprocessable Entity
+// response: 400 Bad Request
 {
   "error": {
-    "code": "ANALYSIS_VALIDATION",
-    "message": "analysis validation failed",
-    "details": {
-      "Descrição": "Descrição deve ter pelo menos 5 caracteres",
-      "Status": "Status deve ser xpto"
-    }
+    "code": "BAD_INPUT",
+    "status_code": 400,
+    "message": "bad input",
+    "cause": "unexpected end of JSON input"
+  }
+}
+```
+
+#### Request required fields validation
+
+```shell
+  curl -X POST localhost:8080/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Bruno"}'
+```
+
+```json
+// response: 400 Bad Request
+{
+  "error": {
+    "code": "REQUEST_VALIDATION",
+    "status_code": 400,
+    "message": "request validation failed",
+    "cause": "validation failed",
+    "details": [
+      "E-mail é um campo obrigatório"
+    ]
   }
 }
 ```
 
 The field `details` only exist when the error is a **validation** error.
 
-### 3. Custom Error Handling
+#### Business struct validation
 
-Use `kit.NewResponseError()` to create structured errors.
-
-```go
-package main
-
-import (
-    "errors"
-    "github.com/arvo-health/kit"
-    "github.com/gofiber/fiber/v2"
-    "net/http"
-)
-
-var ErrUserNotFound = errors.New("user not found")
-
-func main() {
-    app := fiber.New(fiber.Config{
-        ErrorHandler: kit.ErrorHandler(),
-    })
-
-    app.Get("/user/:id", func(c *fiber.Ctx) error {
-        return kit.NewResponseError(ErrUserNotFound, "USER_NOT_FOUND", http.StatusNotFound)
-    })
-
-    app.Listen(":8080")
-}
+```shell
+  curl -X POST localhost:8080/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Bru","email":"invalidarvo.com.br"}'
 ```
 
-**Expected Response for Not Found Error:**
-
 ```json
-// GET /user/123
-// 404 Not Found
+// response: 422 Unprocessable Entity
 {
   "error": {
-    "code": "USER_NOT_FOUND",
-    "message": "user not found"
+    "code": "USER_VALIDATION",
+    "status_code": 422,
+    "message": "insert user validation failed",
+    "cause": "validation failed",
+    "details": [
+      "Nome deve ter pelo menos 5 caracteres",
+      "E-mail deve ser um endereço de e-mail válido"
+    ]
   }
 }
 ```
 
-## Contributions
+#### "Complex" business validation
+
+```shell
+  curl -X POST localhost:8080/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Bruno","email":"mars@email.com"}'
+```
+
+```json
+// response: 422 Unprocessable Entity
+{
+  "error": {
+    "code": "USER_BUSINESS_VALIDATION",
+    "status_code": 422,
+    "message": "insert user bisiness validation failed",
+    "cause": "validation error",
+    "details": [
+      "E-mail deve ser igual ao Nome",
+      "E-mail deve ter o domínio @arvo.com.br"
+    ]
+  }
+}
+```
+
+## Installation
+
+To install the package, run:
+
+```shell
+  go get github.com/arvo-health/kit
+```
+
+Then, import it in your Go application:
+
+```go
+import "github.com/arvo-health/kit"
+```
+
+# Contribution
 
 Contributions and feedback are welcome!

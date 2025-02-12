@@ -89,8 +89,8 @@ func TestErrorHandler(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/test", nil)
 
 			resp, err := app.Test(req)
-			defer resp.Body.Close()
 			require.NoError(t, err)
+			defer resp.Body.Close()
 
 			var respBody map[string]any
 			err = json.NewDecoder(resp.Body).Decode(&respBody)

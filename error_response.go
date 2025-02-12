@@ -58,3 +58,8 @@ func NewResponseError(status int, err error) *ResponseError {
 func (e *ResponseError) Error() string {
 	return e.Message
 }
+
+// Unwrap returns the original error, if present.
+func (e *ResponseError) Unwrap() error {
+	return e.err
+}

@@ -88,3 +88,13 @@ func (e *Error) Error() string {
 func (e *Error) Unwrap() error {
 	return e.cause
 }
+
+// Code returns the error code of the Error.
+func (e *Error) Code() string {
+	return e.code
+}
+
+// Details returns the error details of the Error.
+func (e *Error) Details() []string {
+	return e.details
+}

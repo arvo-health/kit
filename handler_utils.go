@@ -14,7 +14,7 @@ import (
 
 // ParseRequestBody parses and validates the request body into the provided output struct, returning an error on failure.
 // It uses the Fiber context to extract the body and the Validate struct for validation and error translation.
-func ParseRequestBody(out interface{}, c *fiber.Ctx, v *Validate) error {
+func ParseRequestBody(out any, c *fiber.Ctx, v *Validate) error {
 	// parse and validate the request body using the Fiber context
 	if err := c.BodyParser(out); err != nil {
 		err = ErrBadInput.WrapCause(err)

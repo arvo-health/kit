@@ -11,7 +11,7 @@ import (
 )
 
 // Map is a type alias for a map with string keys and values of any type, allowing flexible data representation.
-type Map map[string]interface{}
+type Map map[string]any
 
 // Request is a struct that represents the request body of the handler.
 // It contains a map that can be used to marshal the request body into JSON format and a map for the headers.

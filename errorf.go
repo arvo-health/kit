@@ -12,16 +12,16 @@ import (
 // sentinel errors
 
 // ErrBadInput signifies an error related to invalid or malformed input, typically used for validation or parsing failures.
-var ErrBadInput = NewErrorf("BAD_INPUT", "bad input")
+var ErrBadInput = NewErrorf("BAD_INPUT", "Algo deu errado com os dados informados. Verifique e tente novamente.")
 
 // ErrRequestValidation represents an error indicating that a request validation has failed.
-var ErrRequestValidation = NewErrorf("REQUEST_VALIDATION", "falha na validação da requisição")
+var ErrRequestValidation = NewErrorf("REQUEST_VALIDATION", "Não foi possível concluir requisição. Verifique os dados informados e tente novamente.")
 
 // ErrActionDenied represents an error indicating that the requested action is not permitted.
-var ErrActionDenied = NewErrorf("ACTION_DENIED", "usuário não tem permissão para executar esta ação")
+var ErrActionDenied = NewErrorf("ACTION_DENIED", "Você não tem permissão para realizar esta ação. Se precisar de acesso, contate o administrador.")
 
 // ErrUnauthorized represents an error indicating an unauthorized access attempt.
-var ErrUnauthorized = NewErrorf("UNAUTHORIZED", "não autorizado")
+var ErrUnauthorized = NewErrorf("UNAUTHORIZED", "Você não tem autorização para acessar este recurso.")
 
 // Error represents a structured error with a code, message format, details, cause, and additional format arguments.
 type Error struct {

@@ -48,7 +48,7 @@ func NewResponseError(status int, err error) *ResponseError {
 	return &ResponseError{
 		Status:  status,
 		Code:    "UNKNOWN",
-		Message: "unknown error",
+		Message: "Ocorreu um erro inesperado. Tente novamente mais tarde ou contate o administrador.",
 		Cause:   err.Error(),
 		err:     err,
 	}

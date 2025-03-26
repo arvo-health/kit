@@ -5,7 +5,6 @@ package kit
 
 import (
 	"errors"
-	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -15,13 +14,13 @@ import (
 func ErrorHandler() fiber.ErrorHandler {
 	return func(c *fiber.Ctx, err error) error {
 
-		var respError *ResponseError
-		if !errors.As(err, &respError) {
-			respError = NewResponseError(http.StatusInternalServerError, err)
+		var e *HTTPError
+		if !errors.As(err, &e) {
+			e = HTTPInternalServerError(err)
 		}
 
-		return c.Status(respError.Status).JSON(Map{
-			"error": respError,
+		return c.Status(e.Status).JSON(Map{
+			"error": e,
 		})
 	}
 }

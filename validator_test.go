@@ -77,9 +77,9 @@ func TestStructTranslated(t *testing.T) {
 				assert.Error(t, err)
 				// Verify the returned error messages and validations
 				var validationErr *kit.ValidationErrors
-				assert.ErrorAs(t, err, &validationErr, "Error should be of type *kit.ValidationErrors")
-				assert.Equal(t, "validation failed", validationErr.Error(), "Error message should match")
-				assert.ElementsMatch(t, tt.expectedErrors, validationErr.Validations(), "Error validations should match")
+				assert.ErrorAs(t, err, &validationErr, "DomainError should be of type *kit.ValidationErrors")
+				assert.Equal(t, "validation failed", validationErr.Error(), "DomainError message should match")
+				assert.ElementsMatch(t, tt.expectedErrors, validationErr.Validations(), "DomainError validations should match")
 			} else {
 				assert.NoError(t, err)
 			}

@@ -68,7 +68,7 @@ func TestValidationErrors(t *testing.T) {
 			assert.Equal(t, !tt.expectHasErrors, validationErrors.HasNoValidations(), "HasNoValidations() should match the expected value")
 
 			// Check error message
-			assert.Equal(t, tt.message, validationErrors.Error(), "Error message should match")
+			assert.Equal(t, tt.message, validationErrors.Error(), "DomainError message should match")
 
 			// Check ErrorOrNil behavior
 			if tt.expectHasErrors {

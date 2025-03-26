@@ -7,26 +7,25 @@ package kit
 
 import (
 	"errors"
-	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-// ParseRequestBody parses and validates the request body into the provided output struct, returning an error on failure.
-// It uses the Fiber context to extract the body and the Validate struct for validation and error translation.
-func ParseRequestBody(out any, c *fiber.Ctx, v *Validate) error {
+type Validator interface {
+	StructTranslated(s interface{}) error
+}
+
+func ParseRequestBody(out any, c *fiber.Ctx, v Validator) error {
 	// parse and validate the request body using the Fiber context
 	if err := c.BodyParser(out); err != nil {
-		err = ErrBadInput.WrapCause(err)
-		return NewResponseError(http.StatusBadRequest, err)
+		return HTTPBadRequestError("bad-input", err)
 	}
 
 	// validate the parsed body using the provided Validator
 	if err := v.StructTranslated(out); err != nil {
 		var validationErrors *ValidationErrors
 		if errors.As(err, &validationErrors) {
-			err = ErrRequestValidation.WrapCause(err)
-			return NewResponseError(http.StatusBadRequest, err)
+			return HTTPBadRequestError("request-validation", err)
 		}
 		return err
 	}

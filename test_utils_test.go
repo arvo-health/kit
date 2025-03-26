@@ -20,13 +20,13 @@ func TestAssertErrorIs(t *testing.T) {
 		expectMatching bool
 	}{
 		{
-			name:           "Matching Error",
+			name:           "Matching DomainError",
 			givenError:     customError,
 			expectedError:  customError,
 			expectMatching: true,
 		},
 		{
-			name:           "Wrapped Error Matching",
+			name:           "Wrapped DomainError Matching",
 			givenError:     wrappedError,
 			expectedError:  customError,
 			expectMatching: true,
@@ -36,7 +36,7 @@ func TestAssertErrorIs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			isMatching := kit.AssertErrorIs(tt.expectedError)(t, tt.givenError)
-			assert.Equal(t, tt.expectMatching, isMatching, "Error match assertion result mismatch")
+			assert.Equal(t, tt.expectMatching, isMatching, "DomainError match assertion result mismatch")
 		})
 	}
 }

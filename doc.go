@@ -7,9 +7,9 @@
 //   - Validation: Provides a wrapper around `go-playground/validator`, supporting custom validation tags
 //     and localized error messages in Portuguese.
 //
-//   - Error Handling: Standardizes application errors with structured responses through `ResponseError`.
+//   - DomainError Handling: Standardizes application errors with structured responses through `ResponseError`.
 //     Includes a Fiber-compatible error handler (`ErrorHandler`) for seamless error processing.
-//     Provides structured error types (`Error` and `ValidationErrors`) for better debugging.
+//     Provides structured error types (`DomainError` and `ValidationErrors`) for better debugging.
 //
 //   - Logging: Leverages `slog` for structured, JSON-based logging with support for contextual attributes
 //     like request ID, user details, and response status. Includes `LoggerMiddleware` for request-based logging.

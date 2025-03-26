@@ -21,18 +21,18 @@ func TestNewResponseError(t *testing.T) {
 		expectedUnwrappedError error
 	}{
 		{
-			name:                   "Custom Error with Details",
+			name:                   "Custom DomainError with Details",
 			inputStatus:            400,
-			inputError:             kit.NewErrorf("CUSTOM_ERROR", "A custom %s occurred").WithArgs("error").WithDetails([]string{"detail1", "detail2"}),
+			inputError:             kit.NewDomainErrorf("CUSTOM_ERROR", "A custom %s occurred").WithArgs("error").WithDetails([]string{"detail1", "detail2"}),
 			expectedCode:           "CUSTOM_ERROR",
 			expectedStatus:         400,
 			expectedMessage:        "A custom error occurred",
 			expectedCause:          "",
 			expectedDetails:        []string{"detail1", "detail2"},
-			expectedUnwrappedError: kit.NewErrorf("CUSTOM_ERROR", "A custom %s occurred").WithArgs("error").WithDetails([]string{"detail1", "detail2"}),
+			expectedUnwrappedError: kit.NewDomainErrorf("CUSTOM_ERROR", "A custom %s occurred").WithArgs("error").WithDetails([]string{"detail1", "detail2"}),
 		},
 		{
-			name:                   "Validation Error",
+			name:                   "Validation DomainError",
 			inputStatus:            422,
 			inputError:             kit.NewValidationErrors("validation failed", []string{"field1 is invalid", "field2 is required"}...),
 			expectedCode:           "VALIDATION",
@@ -43,7 +43,7 @@ func TestNewResponseError(t *testing.T) {
 			expectedUnwrappedError: kit.NewValidationErrors("validation failed", []string{"field1 is invalid", "field2 is required"}...),
 		},
 		{
-			name:                   "Unknown Error",
+			name:                   "Unknown DomainError",
 			inputStatus:            500,
 			inputError:             errors.New("unexpected issue"),
 			expectedCode:           "UNKNOWN",
@@ -64,7 +64,7 @@ func TestNewResponseError(t *testing.T) {
 			assert.Equal(t, tt.expectedMessage, respErr.Message, "Message should match")
 			assert.Equal(t, tt.expectedCause, respErr.Cause, "Cause should match")
 			assert.Equal(t, tt.expectedDetails, respErr.Details, "Details should match")
-			assert.Equal(t, tt.expectedUnwrappedError, tt.inputError, "Error should be the same")
+			assert.Equal(t, tt.expectedUnwrappedError, tt.inputError, "DomainError should be the same")
 		})
 	}
 }

@@ -8,9 +8,10 @@ type ContextKey string
 
 // Predefined context keys for common use cases.
 const (
-	KeyLogger              ContextKey = "kit.logger"
-	KeyUserEmail           ContextKey = "kit.user_email"
-	KeyUserCompany         ContextKey = "kit.user_company"
-	KeyUserCompanyCategory ContextKey = "kit.user_company_category"
-	KeyUserPermissions     ContextKey = "kit.user_permissions"
+	CtxKeyLogger              ContextKey = "kit.logger"
+	CtxKeyRequestID           ContextKey = "kit.request_id"
+	CtxKeyUserEmail           ContextKey = "kit.user_email"
+	CtxKeyUserCompany         ContextKey = "kit.user_company"
+	CtxKeyUserCompanyCategory ContextKey = "kit.user_company_category"
+	CtxKeyUserPermissions     ContextKey = "kit.user_permissions"
 )

@@ -1,4 +1,4 @@
-name: golangci-lint
+name: lint
 on:
   push:
     branches:
@@ -7,9 +7,6 @@ on:
 
 permissions:
   contents: read
-  # Optional: allow read access to pull request. Use with `only-new-issues` option.
-  # pull-requests: read
-  # Optional: allow write access to checks to allow the action to annotate code in the PR.
   checks: write
 
 jobs:
@@ -21,8 +18,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: stable
-
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: v1.60
+          version: v2.0

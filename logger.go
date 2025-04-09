@@ -11,13 +11,6 @@ import (
 
 // NewLogger creates a new instance of a JSON-based `slog.Logger` with customizable attributes.
 // It allows adding additional context (e.g., service name, version) to logs.
-//
-// Parameters:
-// - `level`: Specifies the logging level (e.g., Info, Debug, Error).
-// - `opts`: Additional attributes for contextual logging.
-//
-// Returns:
-// - A pointer to the configured `slog.Logger` instance.
 func NewLogger(level slog.Level, opts ...slog.Attr) *slog.Logger {
 	// Configure a handler for JSON-formatted logs with source code information.
 	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
@@ -31,7 +24,5 @@ func NewLogger(level slog.Level, opts ...slog.Attr) *slog.Logger {
 		logger = logger.With(opt)
 	}
 
-	// Set this logger as the default logger for the application.
-	slog.SetDefault(logger)
 	return logger
 }

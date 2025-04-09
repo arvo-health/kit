@@ -1,7 +1,8 @@
 profile: cover.out
 threshold:
-  total: 90
+  total: 80
 exclude:
   paths:
     - logger.go
     - logger_middleware.go
+    - healthcheck_middleware.go

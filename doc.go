@@ -1,15 +1,11 @@
-// Package kit is a foundational Go library designed to help developers build robust,
-// consistent, and maintainable applications. It provides utilities for structured logging,
-// validation, error handling, request parsing, and middleware integration with the Fiber web framework.
+// Package kit is a foundational Go library designed to help developers build consistent,
+// and maintainable applications. It provides utilities for structured logging, validation,
+// error handling, request parsing, and middleware integration with the Fiber web framework.
 //
 // # Key Features:
 //
 //   - Validation: Provides a wrapper around `go-playground/validator`, supporting custom validation tags
 //     and localized error messages in Portuguese.
-//
-//   - DomainError Handling: Standardizes application errors with structured responses through `ResponseError`.
-//     Includes a Fiber-compatible error handler (`ErrorHandler`) for seamless error processing.
-//     Provides structured error types (`DomainError` and `ValidationErrors`) for better debugging.
 //
 //   - Logging: Leverages `slog` for structured, JSON-based logging with support for contextual attributes
 //     like request ID, user details, and response status. Includes `LoggerMiddleware` for request-based logging.

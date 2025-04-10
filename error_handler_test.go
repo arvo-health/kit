@@ -3,6 +3,7 @@ package kit_test
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,6 +21,18 @@ func TestErrorHandler(t *testing.T) {
 		expectedStatus    int
 		expectedErrorBody map[string]any
 	}{
+		{
+			name:           "Fiber Error handled correctly",
+			inputError:     fiber.NewError(http.StatusBadRequest, "bad request"),
+			expectedStatus: http.StatusBadRequest,
+			expectedErrorBody: map[string]any{
+				"error": map[string]any{
+					"code":        "fiber-err",
+					"message":     "bad requestbad request",
+					"status_code": float64(http.StatusBadRequest),
+				},
+			},
+		},
 		{
 			name:           "ResponseError with ValidationError handled correctly",
 			inputError:     kit.HTTPUnprocessableEntityError("validation", kit.NewValidationErrors("validation error", "field1 is required")),
@@ -63,7 +76,7 @@ func TestErrorHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Configuração do app Fiber
 			app := fiber.New(fiber.Config{
-				ErrorHandler: kit.ErrorHandler(),
+				ErrorHandler: kit.ErrorHandler(slog.Default()),
 			})
 
 			// Rota de teste que retorna um erro

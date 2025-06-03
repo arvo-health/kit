@@ -57,7 +57,7 @@ func (h *MockLogHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	newHandler := *h
+	newHandler := *h //nolint:govet // Test purpose
 	newHandler.attrs = append(h.attrs, attrs...)
 	return &newHandler
 }
@@ -67,7 +67,7 @@ func (h *MockLogHandler) WithGroup(name string) slog.Handler {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	newHandler := *h
+	newHandler := *h //nolint:govet // Test purpose
 	newHandler.groups = append(h.groups, name)
 	return &newHandler
 }

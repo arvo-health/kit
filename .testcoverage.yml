@@ -6,3 +6,4 @@ exclude:
     - logger.go
     - logger_middleware.go
     - healthcheck_middleware.go
+    - test_slog_mock.go

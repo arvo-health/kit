@@ -25,6 +25,9 @@ and middleware integration with the Fiber web framework.
   - **Testing Utilities**: Provides helper functions and types (`Map`, `Request`, `Response`) to facilitate
     the creation and testing of HTTP handlers.
 
+    - **Mock de Logging**: Proporciona uma implementação de log (slog) mockada (`MockLogHandler`) para capturar e testar mensagens de log em cenários de teste.
+
+
   - **Context Management**: Defines `ContextKey` constants to facilitate storing and retrieving metadata
     (e.g., user info, logging context).
 
@@ -42,6 +45,7 @@ kit/
 ├── validator_error.go        # Custom validation error structure
 ├── healthcheck_middleware.go # Middleware for health check endpoints
 ├── test_utils.go             # HTTP handler testing utilities
+├── test_slog_mock.go         # Mock de handler de log para testes
 ```
 
 ## Basic Usage Examples
@@ -139,7 +143,46 @@ func main() {
 }
 ```
 
-### **3. Health Check Middleware**
+### **3. Logging Mock**
+
+The `MockLogHandler` is for capturing and testing logged messages in the context of testing. It allows validating if certain messages were logged.
+
+```go
+package main
+
+import (
+	"log/slog"
+	"testing"
+
+	"github.com/arvo-health/kit"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestMockLogHandler(t *testing.T) {
+	// Initializes the MockLogHandler to capture logs
+	handler := kit.NewMockLogHandler()
+
+	// Creates a logger with the mock handler
+	logger := slog.New(handler)
+
+	// Logs an example message
+	logger.Info("Example informational log", slog.String("key", "value"))
+
+	// Retrieves the captured records
+	records := handler.CapturedRecords()
+
+	// Asserts that there is exactly one log record captured
+	assert.Len(t, records, 1, "Expected 1 log record, but found %d", len(records))
+
+	// Asserts that the captured log level matches the expected INFO level
+	assert.Equal(t, slog.LevelInfo, records[0].Level, "Expected log level to be INFO, but found %s", records[0].Level)
+
+	// Assert that the log message content matches the expected value
+	assert.Equal(t, "Example informational log", records[0].Message, "Incorrect log message: expected 'Example informational log', got '%s'", records[0].Message)
+}
+```
+
+### **4. Health Check Middleware**
 Add liveness and readiness health check endpoints easily to your applications.
 
 ```go

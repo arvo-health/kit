@@ -28,7 +28,7 @@ func TestErrorHandler(t *testing.T) {
 			expectedErrorBody: map[string]any{
 				"error": map[string]any{
 					"code":        "fiber-err",
-					"message":     "bad requestbad request",
+					"message":     "bad request: bad request",
 					"status_code": float64(http.StatusBadRequest),
 				},
 			},

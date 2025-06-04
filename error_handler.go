@@ -22,7 +22,7 @@ func ErrorHandler(logger *slog.Logger) fiber.ErrorHandler {
 			return c.Status(fiberErr.Code).JSON(Map{
 				"error": HTTPError{
 					Slug:    "fiber-err",
-					Message: fiberErr.Message + fiberErr.Error(),
+					Message: fiberErr.Message + ": " + fiberErr.Error(),
 					Status:  fiberErr.Code,
 				},
 			})

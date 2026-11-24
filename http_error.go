@@ -30,6 +30,11 @@ func HTTPBadRequestError(slug string, err error) *HTTPError {
 	return NewHTTPError(http.StatusBadRequest, slug, err)
 }
 
+// HTTPUnsupportedMediaTypeError returns an HTTPError with status 415, a custom slug, and an optional error message/details.
+func HTTPUnsupportedMediaTypeError(slug string, err error) *HTTPError {
+	return NewHTTPError(http.StatusUnsupportedMediaType, slug, err)
+}
+
 // HTTPUnprocessableEntityError returns an HTTPError with status 422, a custom slug, and an optional error message/details.
 func HTTPUnprocessableEntityError(slug string, err error) *HTTPError {
 	return NewHTTPError(http.StatusUnprocessableEntity, slug, err)

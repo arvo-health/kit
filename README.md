@@ -102,6 +102,7 @@ func main() {
 ### **2. Validating Payloads**
 
 `kit.ParseRequestBody` simplifies the processing of JSON payloads in Fiber, automatically validating them and returning standardized error responses on failure.
+Only JSON bodies (`application/json` or `+json` media types) are accepted; any other `Content-Type`, including form, multipart, and XML, is rejected with `415 Unsupported Media Type`, so fields tagged `json:"-"` cannot be set by the client.
 See the official [go-playground/validator](https://pkg.go.dev/github.com/go-playground/validator/v10#section-readme) documentation for more tag validation options.
 
 ```go

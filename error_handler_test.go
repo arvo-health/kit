@@ -66,7 +66,7 @@ func TestErrorHandler(t *testing.T) {
 				"error": map[string]any{
 					"code":        "unknown-error",
 					"status_code": float64(http.StatusInternalServerError),
-					"message":     "internal server error",
+					"message":     kit.InternalErrorMessage,
 				},
 			},
 		},

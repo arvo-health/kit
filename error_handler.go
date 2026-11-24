@@ -11,9 +11,18 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// InternalErrorMessage is the only message sent to clients for errors that are not a fiber.Error or HTTPError.
+const InternalErrorMessage = "internal error"
+
 // ErrorHandler returns a Fiber-compatible error handler that maps errors to structured JSON responses.
-// If the error is not a fiber.Error or HTTPError, it wraps it in a generic unknown-error with HTTP 500 status.
+// If the error is not a fiber.Error or HTTPError, it logs the original error and responds with a generic
+// unknown-error with HTTP 500 status whose message is InternalErrorMessage, so internal failure details
+// never reach the client.
 func ErrorHandler(logger *slog.Logger) fiber.ErrorHandler {
+	if logger == nil {
+		logger = slog.Default()
+	}
+
 	return func(c *fiber.Ctx, err error) error {
 
 		var fiberErr *fiber.Error
@@ -30,7 +39,12 @@ func ErrorHandler(logger *slog.Logger) fiber.ErrorHandler {
 
 		var e *HTTPError
 		if !errors.As(err, &e) {
-			e = HTTPInternalServerError(err)
+			logUnexpectedError(logger, c, err)
+			e = &HTTPError{
+				Slug:    "unknown-error",
+				Message: InternalErrorMessage,
+				Status:  http.StatusInternalServerError,
+			}
 		}
 
 		return c.Status(e.Status).JSON(Map{
@@ -40,12 +54,6 @@ func ErrorHandler(logger *slog.Logger) fiber.ErrorHandler {
 }
 
 func logFiberError(logger *slog.Logger, c *fiber.Ctx, fiberErr *fiber.Error) {
-	requestAttributes := []slog.Attr{
-		slog.String("method", string(c.Context().Method())),
-		slog.String("host", c.Hostname()),
-		slog.String("path", c.Path()),
-	}
-
 	level := slog.LevelWarn
 	if fiberErr.Code >= http.StatusInternalServerError {
 		level = slog.LevelError
@@ -53,7 +61,22 @@ func logFiberError(logger *slog.Logger, c *fiber.Ctx, fiberErr *fiber.Error) {
 
 	msg := "request failed: " + fiberErr.Message
 
-	attributes := slog.Attr{Key: "request", Value: slog.GroupValue(requestAttributes...)}
+	logger.LogAttrs(c.UserContext(), level, msg, requestLogAttr(c))
+}
 
-	logger.LogAttrs(c.UserContext(), level, msg, attributes)
+func logUnexpectedError(logger *slog.Logger, c *fiber.Ctx, err error) {
+	logger.LogAttrs(c.UserContext(), slog.LevelError, "request failed: unexpected error",
+		slog.String("error", err.Error()),
+		requestLogAttr(c),
+	)
+}
+
+func requestLogAttr(c *fiber.Ctx) slog.Attr {
+	requestAttributes := []slog.Attr{
+		slog.String("method", string(c.Context().Method())),
+		slog.String("host", c.Hostname()),
+		slog.String("path", c.Path()),
+	}
+
+	return slog.Attr{Key: "request", Value: slog.GroupValue(requestAttributes...)}
 }

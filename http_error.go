@@ -54,6 +54,7 @@ type HTTPError struct {
 }
 
 // NewHTTPError generates a HTTPError from the provided HTTP status and error, mapping to structured error types.
+// The error's text becomes the message sent to clients, so err must not carry internal details.
 func NewHTTPError(status int, slug string, err error) *HTTPError {
 	if status == 0 {
 		status = 500

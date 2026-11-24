@@ -7,6 +7,8 @@ package kit
 
 import (
 	"errors"
+	"mime"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -15,9 +17,19 @@ type Validator interface {
 	StructTranslated(s interface{}) error
 }
 
+// ErrUnsupportedMediaType is returned (wrapped in a 415 HTTPError) when the
+// request body is not JSON.
+var ErrUnsupportedMediaType = errors.New("request body must be JSON")
+
+// ParseRequestBody decodes a JSON request body into out and validates it.
+// Only JSON bodies are accepted: form, multipart, and XML decoders bind
+// exported fields by their Go name and would ignore json:"-" tags.
 func ParseRequestBody(out any, c *fiber.Ctx, v Validator) error {
-	// parse and validate the request body using the Fiber context
-	if err := c.BodyParser(out); err != nil {
+	if !isJSONContentType(string(c.Request().Header.ContentType())) {
+		return HTTPUnsupportedMediaTypeError("unsupported-media-type", ErrUnsupportedMediaType)
+	}
+
+	if err := c.App().Config().JSONDecoder(c.Body(), out); err != nil {
 		return HTTPBadRequestError("bad-input", err)
 	}
 
@@ -31,4 +43,18 @@ func ParseRequestBody(out any, c *fiber.Ctx, v Validator) error {
 	}
 
 	return nil
+}
+
+// isJSONContentType reports whether contentType is application/json or a
+// structured-syntax JSON type such as application/vnd.api+json.
+func isJSONContentType(contentType string) bool {
+	mediaType, _, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		return false
+	}
+	_, subtype, ok := strings.Cut(mediaType, "/")
+	if !ok {
+		return false
+	}
+	return subtype == "json" || strings.HasSuffix(subtype, "+json")
 }

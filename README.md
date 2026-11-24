@@ -221,11 +221,8 @@ func main() {
     "time": "2025-04-09T17:58:39.225248Z",
     "method": "GET",
     "host": "localhost:8080",
-    "path": "/users/10",
     "query": "",
-    "params": {
-      "id": "10"
-    },
+    "params": {},
     "route": "/users/:id",
     "length": 0
   },
@@ -243,6 +240,11 @@ func main() {
   }
 }
 ```
+
+The raw request path, query string, and route parameter values are not logged, since links often carry
+tokens or codes. Only the route template is recorded. To log specific non-secret values, list their names in
+`Config.LoggedQueryParams` and `Config.LoggedRouteParams` when using `LoggerMiddlewareWithConfig`; names in
+`kit.SensitiveURLParams` (such as `token`, `code`, `password`, `email`, `signature`) are always left out.
 
 ## **Example of response error**
 

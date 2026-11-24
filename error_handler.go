@@ -40,10 +40,12 @@ func ErrorHandler(logger *slog.Logger) fiber.ErrorHandler {
 }
 
 func logFiberError(logger *slog.Logger, c *fiber.Ctx, fiberErr *fiber.Error) {
+	route := routeTemplate(c)
+
 	requestAttributes := []slog.Attr{
 		slog.String("method", string(c.Context().Method())),
 		slog.String("host", c.Hostname()),
-		slog.String("path", c.Path()),
+		slog.String("route", route),
 	}
 
 	level := slog.LevelWarn
@@ -51,7 +53,7 @@ func logFiberError(logger *slog.Logger, c *fiber.Ctx, fiberErr *fiber.Error) {
 		level = slog.LevelError
 	}
 
-	msg := "request failed: " + fiberErr.Message
+	msg := "request failed: " + redactURL(fiberErr.Message, route, urlValues(c)...)
 
 	attributes := slog.Attr{Key: "request", Value: slog.GroupValue(requestAttributes...)}
 

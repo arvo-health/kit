@@ -20,20 +20,61 @@ type customAttributesCtxKeyType struct{}
 var (
 	customAttributesCtxKey = customAttributesCtxKeyType{}
 
-	HiddenRequestHeaders = map[string]struct{}{
-		"authorization": {},
-		"cookie":        {},
-		"set-cookie":    {},
-		"x-auth-token":  {},
-		"x-csrf-token":  {},
-		"x-xsrf-token":  {},
-	}
-	HiddenResponseHeaders = map[string]struct{}{
-		"set-cookie": {},
-	}
+	// HiddenRequestHeaders and HiddenResponseHeaders hold lowercase header names that are never logged.
+	// Names matching sensitiveHeaderFragments are also omitted, regardless of these maps.
+	HiddenRequestHeaders  = newSensitiveHeaderSet()
+	HiddenResponseHeaders = newSensitiveHeaderSet()
 
 	RequestIDHeaderKey = "X-Request-Id"
 )
+
+func newSensitiveHeaderSet() map[string]struct{} {
+	return map[string]struct{}{
+		"api-key":             {},
+		"authentication":      {},
+		"authorization":       {},
+		"cookie":              {},
+		"proxy-authorization": {},
+		"set-cookie":          {},
+		"x-access-token":      {},
+		"x-api-key":           {},
+		"x-api-token":         {},
+		"x-auth-token":        {},
+		"x-csrf-token":        {},
+		"x-xsrf-token":        {},
+	}
+}
+
+// sensitiveHeaderFragments are substrings of normalized (lowercase, hyphenated) header names
+// that commonly carry credentials, so vendor-specific variants are omitted too.
+var sensitiveHeaderFragments = []string{
+	"auth",
+	"token",
+	"secret",
+	"password",
+	"passwd",
+	"cookie",
+	"session",
+	"credential",
+	"signature",
+	"api-key",
+	"apikey",
+	"private-key",
+	"access-key",
+}
+
+func isSensitiveHeader(name string, hidden map[string]struct{}) bool {
+	normalized := strings.ReplaceAll(strings.ToLower(strings.TrimSpace(name)), "_", "-")
+	if _, found := hidden[normalized]; found {
+		return true
+	}
+	for _, fragment := range sensitiveHeaderFragments {
+		if strings.Contains(normalized, fragment) {
+			return true
+		}
+	}
+	return false
+}
 
 type Config struct {
 	DefaultLevel       slog.Level
@@ -133,7 +174,7 @@ func LoggerMiddlewareWithConfig(logger *slog.Logger, config Config) fiber.Handle
 			kv := []any{}
 
 			for k, v := range c.GetReqHeaders() {
-				if _, found := HiddenRequestHeaders[strings.ToLower(k)]; found {
+				if isSensitiveHeader(k, HiddenRequestHeaders) {
 					continue
 				}
 				kv = append(kv, slog.Any(k, v))
@@ -151,7 +192,7 @@ func LoggerMiddlewareWithConfig(logger *slog.Logger, config Config) fiber.Handle
 			kv := []any{}
 
 			for k, v := range c.GetRespHeaders() {
-				if _, found := HiddenResponseHeaders[strings.ToLower(k)]; found {
+				if isSensitiveHeader(k, HiddenResponseHeaders) {
 					continue
 				}
 				kv = append(kv, slog.Any(k, v))
